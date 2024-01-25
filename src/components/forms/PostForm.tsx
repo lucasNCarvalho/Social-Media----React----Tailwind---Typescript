@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button"
 import {
     Form,
     FormControl,
-    FormDescription,
     FormField,
     FormItem,
     FormLabel,
@@ -23,7 +22,7 @@ type PostFormProps = {
 }
 
 function PostForm({post}: PostFormProps) {
-
+    
     // 1. Define your form.
     const form = useForm<z.infer<typeof PostValidation>>({
         resolver: zodResolver(PostValidation),

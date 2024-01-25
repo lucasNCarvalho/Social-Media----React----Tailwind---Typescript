@@ -89,9 +89,9 @@ export async function getCurrentUser() {
 }
 
 export async function signOutAccount() {
-    
+    console.log("oi")
     try {
-        const session = await account.deleteSession("Current");
+        const session = await account.deleteSession("current");
 
         return session;
     } catch (error) {
