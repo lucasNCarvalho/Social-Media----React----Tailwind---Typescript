@@ -16,7 +16,7 @@ function leftSideBar() {
 
 
     useEffect(() => {
-        console.log("a", user)
+        
         if (isSuccess) navigate(0);
     }, [isSuccess])
     return (
