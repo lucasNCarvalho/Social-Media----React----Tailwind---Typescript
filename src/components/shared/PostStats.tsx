@@ -23,9 +23,7 @@ const PostStats = ({ post, userId }: PostStatsProps) => {
   
     const [likes, setLikes] = useState<string[]>([]);
     const [isSaved, setIsSaved] = useState(false);
-    console.log("a",likes)
-
-    console.log("isSaved", isSaved)
+  
     const { mutate: likePost } = useLikedPost();
     const { mutate: savePost, isPending: isSavingPost} = useSavePost();
     const { mutate: deleteSavedPost, isPending: isDeletingSaved } = useDeleteSavedPost();
