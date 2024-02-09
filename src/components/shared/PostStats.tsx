@@ -66,8 +66,6 @@ const PostStats = ({ post, userId }: PostStatsProps) => {
     const handleSavePost = (e: React.MouseEvent) => {
         e.stopPropagation();
 
-        const savedPostRecorded = currentUser?.save.find((record: Models.Document) => record.$id === post.$id)
-
         if(savedPostRecorded) {
             console.log("true")
             setIsSaved(false);
@@ -95,6 +93,7 @@ const PostStats = ({ post, userId }: PostStatsProps) => {
                 <p className='small-medium lg:base-medium'>{likes.length}</p>
             </div>
             < div className='flex gap-2'>
+                {isSavingPost || isDeletingSaved ? <Loader/> : 
                 <img
                     src={isSaved
                         ? "/assets/icons/saved.svg"
