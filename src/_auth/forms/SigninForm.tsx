@@ -43,11 +43,13 @@ function SigninForm() {
 
   // 2. Define a submit handler.
   async function onSubmit(values: z.infer<typeof SigninValidation>) {
-   
+    console.log("valores", values)
     const session = await signInAccount({
       email: values.email,
       password: values.password
-    })
+    })  
+
+    console.log("r", session)
 
     if(!session) {
       return toast({title: 'Login falhou, por favor tente novamente.'})

@@ -57,7 +57,7 @@ export async function saveUserToDB(user: {
 export async function signInAccount(user: {email: string; password: string;}) {
     try {   
         const session = await account.createEmailSession(user.email, user.password)
-
+        console.log("session", session)
         return session;
     } catch (error) {
         console.log(error)
@@ -101,6 +101,7 @@ export async function signOutAccount() {
 }
 
 export async function createPost(post: INewPost) {
+  console.log("create", post.userId)
     try {
       // Upload file to appwrite storage
       const uploadedFile = await uploadFile(post.file[0]);
