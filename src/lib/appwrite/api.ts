@@ -20,7 +20,7 @@ export async function createUserAccount(user: INewUser) {
             name: newAccount.name,
             email: newAccount.email,
             username: user.username,
-            image: avatarUrl
+            imageUrl: avatarUrl
         })
 
         return newUser;
@@ -35,7 +35,7 @@ export async function saveUserToDB(user: {
     accountid: string;
     email: string;
     name: string;
-    image: URL;
+    imageUrl: URL;
     username?: string;
 }) {
    
@@ -57,7 +57,7 @@ export async function saveUserToDB(user: {
 export async function signInAccount(user: {email: string; password: string;}) {
     try {   
         const session = await account.createEmailSession(user.email, user.password)
-
+        console.log("session", session)
         return session;
     } catch (error) {
         console.log(error)
@@ -101,6 +101,7 @@ export async function signOutAccount() {
 }
 
 export async function createPost(post: INewPost) {
+  console.log("create", post.userId)
     try {
       // Upload file to appwrite storage
       const uploadedFile = await uploadFile(post.file[0]);
@@ -125,7 +126,7 @@ export async function createPost(post: INewPost) {
         {
           creator: post.userId,
           caption: post.caption,
-          image: fileUrl,
+          imageUrl: fileUrl,
           imageid: uploadedFile.$id,
           location: post.location,
           tags: tags,
