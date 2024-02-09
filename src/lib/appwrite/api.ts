@@ -20,7 +20,7 @@ export async function createUserAccount(user: INewUser) {
             name: newAccount.name,
             email: newAccount.email,
             username: user.username,
-            image: avatarUrl
+            imageUrl: avatarUrl
         })
 
         return newUser;
@@ -35,7 +35,7 @@ export async function saveUserToDB(user: {
     accountid: string;
     email: string;
     name: string;
-    image: URL;
+    imageUrl: URL;
     username?: string;
 }) {
    
@@ -125,7 +125,7 @@ export async function createPost(post: INewPost) {
         {
           creator: post.userId,
           caption: post.caption,
-          image: fileUrl,
+          imageUrl: fileUrl,
           imageid: uploadedFile.$id,
           location: post.location,
           tags: tags,
@@ -208,7 +208,7 @@ export async function createPost(post: INewPost) {
                 appwriteConfig.postCollectionId,
                 postId,
                 {
-                    Likes: likesArray
+                    likes: likesArray
                 }
             )
 
@@ -222,16 +222,17 @@ export async function createPost(post: INewPost) {
 
   export async function savePost(postId: string, userId: string) {
     try {
+     
             const updatedPost = await databases.createDocument(
                 appwriteConfig.databaseId,
                 appwriteConfig.savesCollectionId,
                 ID.unique(),
                 {
                     user: userId,
-                    post: postId
+                    post: postId,
                 }
             )
-
+              console.log("up", updatedPost)
             if(!updatedPost) throw Error;
 
             return updatedPost;
