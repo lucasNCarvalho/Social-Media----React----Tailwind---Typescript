@@ -57,7 +57,7 @@ export async function saveUserToDB(user: {
 export async function signInAccount(user: {email: string; password: string;}) {
     try {   
         const session = await account.createEmailSession(user.email, user.password)
-        console.log("session", session)
+       
         return session;
     } catch (error) {
         console.log(error)
@@ -101,7 +101,7 @@ export async function signOutAccount() {
 }
 
 export async function createPost(post: INewPost) {
-  console.log("create", post.userId)
+
     try {
       // Upload file to appwrite storage
       const uploadedFile = await uploadFile(post.file[0]);
@@ -202,7 +202,7 @@ export async function createPost(post: INewPost) {
 
   export async function likePost(postId: string, likesArray: string[]) {
 
-    console.log("post", postId, "array", likesArray )
+  
     try {
             const updatedPost = await databases.updateDocument(
                 appwriteConfig.databaseId,
@@ -233,7 +233,7 @@ export async function createPost(post: INewPost) {
                     post: postId,
                 }
             )
-              console.log("up", updatedPost)
+            
             if(!updatedPost) throw Error;
 
             return updatedPost;
@@ -330,9 +330,11 @@ export async function createPost(post: INewPost) {
 
 
     export async function deletePost(postId: string, imageId: string) {
+  
       if(!postId || !imageId) throw Error;
 
       try {
+   
         await databases.deleteDocument(
           appwriteConfig.databaseId,
           appwriteConfig.postCollectionId,
@@ -344,3 +346,46 @@ export async function createPost(post: INewPost) {
         console.log(error)
       }
     }
+
+    export async function getInfinitePosts({pageParam}: {pageParam: number}) {
+      const queries: any[] = [Query.orderDesc('$updatedAt'), Query.limit(10)]
+      
+      if(pageParam) {
+        queries.push(Query.cursorAfter(pageParam.toString()));
+      }
+
+      try {
+        const posts = await databases.listDocuments(
+          appwriteConfig.databaseId,
+          appwriteConfig.postCollectionId,
+          queries
+        )
+        
+        if(!posts) throw Error
+    
+        return posts
+      } catch (error) {
+        console.log(error)
+      }
+
+    }
+
+    export async function searchPosts(searchTerm: string) {
+     
+      try {
+        const posts = await databases.listDocuments(
+          appwriteConfig.databaseId,
+          appwriteConfig.postCollectionId,
+          [Query.search('caption', searchTerm)]
+        )
+
+        if(posts) throw Error
+
+        return posts
+      } catch (error) {
+        console.log(error)
+      }
+
+    }
+
+    

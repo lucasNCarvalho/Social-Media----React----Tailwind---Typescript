@@ -45,6 +45,11 @@ function PostForm({post, action}: PostFormProps) {
         },
     })
 
+    const cancelHandle = () => {
+        navigate(-1)
+    }
+
+
     
     async function onSubmit(values: z.infer<typeof PostValidation>) {
 
@@ -138,6 +143,7 @@ function PostForm({post, action}: PostFormProps) {
                     <Button
                         type="button"
                         className="shad-button_dark_4"
+                        onClick={cancelHandle}
                     >
                         Cancelar
                     </Button>

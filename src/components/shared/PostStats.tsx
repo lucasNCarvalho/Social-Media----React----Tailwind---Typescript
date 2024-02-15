@@ -6,7 +6,7 @@ import React, { useEffect, useState } from 'react'
 import Loader from './Loader';
 
 type PostStatsProps = {
-    post: Models.Document;
+    post?: Models.Document;
     userId: string;
 }
 
@@ -24,7 +24,7 @@ const PostStats = ({ post, userId }: PostStatsProps) => {
     const [likes, setLikes] = useState<string[]>([]);
     const [isSaved, setIsSaved] = useState(false);
   
-    const { mutate: likePost } = useLikedPost();
+    const { mutate: likePost, isPending: isLiking } = useLikedPost();
     const { mutate: savePost, isPending: isSavingPost} = useSavePost();
     const { mutate: deleteSavedPost, isPending: isDeletingSaved } = useDeleteSavedPost();
 
@@ -54,9 +54,9 @@ const PostStats = ({ post, userId }: PostStatsProps) => {
             newLikes.push(userId)
         }
        
-        //setLikes(newLikes);
+        setLikes(newLikes);
       
-        likePost({postId: post.$id, likesArray: newLikes})
+        likePost({postId: post?.$id || '', likesArray: newLikes})
 
     }
 
@@ -65,12 +65,12 @@ const PostStats = ({ post, userId }: PostStatsProps) => {
         e.stopPropagation();
 
         if(savedPostRecorded) {
-            console.log("true")
+            
             setIsSaved(false);
             deleteSavedPost(savedPostRecorded.$id)
         } else {
-            console.log("false")
-            savePost({postId: post.$id, userId});
+            
+            savePost({postId: post?.$id || '', userId});
             setIsSaved(true)
         }
     }
@@ -78,6 +78,7 @@ const PostStats = ({ post, userId }: PostStatsProps) => {
     return (
         <div className='flex justify-between items-center z-20'>
             < div className='flex gap-2 mr-5'>
+                {isLiking ? <Loader/> : 
                 <img
                     src={checkIsLiked(likes, userId)
                         ? "/assets/icons/liked.svg"
@@ -87,7 +88,7 @@ const PostStats = ({ post, userId }: PostStatsProps) => {
                     height={20}
                     onClick={handleLikePost}
                     className='cursor-pointer'
-                />
+                />}
                 <p className='small-medium lg:base-medium'>{likes.length}</p>
             </div>
             < div className='flex gap-2'>
