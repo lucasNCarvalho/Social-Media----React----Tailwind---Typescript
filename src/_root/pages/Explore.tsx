@@ -59,7 +59,8 @@ function Explore() {
       <div className='flex flex-wrap gap-9 w-full max-w-5xl'>
         {shouldShowSearchResults ? (
           <SearchResults
-
+            isSearchFetching={isSearchFeching}
+            searchedPosts={searchedPosts}
           />
         ) : shouldShowPosts ? (
           <p className='text-light-4 mt-10 text-center w-full'>Parece que não há mais publicações</p>
