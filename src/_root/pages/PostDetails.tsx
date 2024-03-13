@@ -1,3 +1,4 @@
+import AlertDialogButton from '@/components/shared/AlertDialogButton';
 import Loader from '@/components/shared/Loader';
 import PostStats from '@/components/shared/PostStats';
 import { Button } from '@/components/ui/button';
@@ -12,13 +13,14 @@ function PostDetails() {
   const { id } = useParams()
 
   const { data: post, isPending } = useGetPostById(id || '');
-  const { mutate: deletePost, isPending: deleteLoading} = useDeletePost()
+  const { mutate: deletePost, isPending: deleteLoading } = useDeletePost()
   const { user } = useUserContext();
 
   const handleDeletePost = () => {
-    deletePost({postId: post?.$id || '',   imageId: post?.imageid})
+
+    deletePost({ postId: post?.$id || '', imageId: post?.imageid })
     navigate(-1)
-  } 
+  }
 
   return (
     <div className='post_details-container'>
@@ -57,18 +59,11 @@ function PostDetails() {
                 <Link to={`/update-post/${post?.$id}`} className={`${user.id !== post?.creator.$id && 'hidden'}`}>
                   <img src="/assets/icons/edit.svg" alt="edit" width={24} height={24} />
                 </Link>
-                <Button
-                  onClick={handleDeletePost}
-                  variant="ghost"
-                  className={`ghost_details-delete_btn ${user.id !== post?.creator.$id && 'hidden'}`}
-                >
-                  <img
-                    src="/assets/icons/delete.svg"
-                    alt="delete"
-                    width={24}
-                    height={24}
+                <div className={`${user.id !== post?.creator.$id && 'hidden'}`}>
+                  <AlertDialogButton
+                    handleDeletePost={handleDeletePost}
                   />
-                </Button>
+                </div>
               </div>
             </div>
 
@@ -86,7 +81,7 @@ function PostDetails() {
             </div>
 
             <div className='w-full'>
-                  <PostStats post={post} userId={user.id}/>
+              <PostStats post={post} userId={user.id} />
             </div>
           </div>
         </div>

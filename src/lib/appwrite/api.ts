@@ -379,7 +379,7 @@ export async function createPost(post: INewPost) {
           [Query.search('caption', searchTerm)]
         )
 
-        if(posts) throw Error
+        if(!posts) throw Error
 
         return posts
       } catch (error) {
@@ -388,4 +388,25 @@ export async function createPost(post: INewPost) {
 
     }
 
+    export async function getSavedPosts (userId: string){
+
     
+      try {
+        const savedPost = await databases.listDocuments(
+          appwriteConfig.databaseId,
+          appwriteConfig.savesCollectionId,
+          [Query.equal('user', userId)]
+        )
+
+        if(!savedPost)  throw Error
+        
+        const finalSaved = savedPost.documents.map((item: any) => item.post); 
+
+        console.log("finalSaved", finalSaved)
+
+        return finalSaved
+
+      } catch (error) {
+        
+      }
+    }

@@ -7,15 +7,15 @@ import PostStats from './PostStats'
 type GridPostListProps = {
     posts: Models.Document[];
     showUser?: boolean;
-    showStats?: boolean;
-
+    showStats?: boolean;    
+    
 }
 
 const GridPostList = ({ posts, showUser = true, showStats = true }: GridPostListProps) => {
 
     const { user } = useUserContext();
 
-
+    console.log("id", posts)
     return (
         <ul className='grid-container '>
             {posts.map((post) => (
