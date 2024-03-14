@@ -13,7 +13,7 @@ import {
 function AlertDialogButton({handleDeletePost}) {
 
     const confirmDelete = () => {
-        handleDeletePost(); // Chama a função handleDeletePost
+        handleDeletePost(); 
     };
 
     return (

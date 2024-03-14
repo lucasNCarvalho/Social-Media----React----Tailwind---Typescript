@@ -390,7 +390,7 @@ export async function createPost(post: INewPost) {
 
     export async function getSavedPosts (userId: string){
 
-    
+      console.log("user", userId)
       try {
         const savedPost = await databases.listDocuments(
           appwriteConfig.databaseId,
