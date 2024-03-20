@@ -17,7 +17,7 @@ function AlertDialogButton({handleDeletePost}) {
     };
 
     return (
-        <div  >
+        <>
             <AlertDialog>
                 <AlertDialogTrigger>
                     <img
@@ -28,7 +28,7 @@ function AlertDialogButton({handleDeletePost}) {
                         className="mt-2"
                     />
                 </AlertDialogTrigger>
-                <AlertDialogContent>
+                <AlertDialogContent className=" bg-dark-3">
                     <AlertDialogHeader>
                         <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
                         <AlertDialogDescription>
@@ -41,7 +41,7 @@ function AlertDialogButton({handleDeletePost}) {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-        </div>
+        </>
     )
 }
 

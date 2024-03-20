@@ -29,7 +29,7 @@ function Saved() {
         </div>
       </div>
       <div>
-        {isLoading ? <Loader/> : savedPosts && <GridPostList posts={savedPosts} />}
+        {isLoading ? <Loader/> : savedPosts && <GridPostList posts={savedPosts}/>}
       </div>
     </div>
   )

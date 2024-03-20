@@ -1,3 +1,4 @@
+import ImageSlider from "@/components/shared/ImageSlider";
 import { Outlet, Navigate } from "react-router-dom"
 
 
@@ -5,6 +6,12 @@ import { Outlet, Navigate } from "react-router-dom"
 const AuthLayout = () => {
 
 const isAuthenticated = false;
+
+  const images = [
+    "/assets/images/slide1.jpg",
+    "/assets/images/slide2.png",
+    "/assets/images/slide3.jpg"
+  ]
 
   return (
     <>
@@ -16,11 +23,12 @@ const isAuthenticated = false;
           <Outlet/>
         </section>
 
-        <img 
+        {/* <img 
         src="/assets/images/side-img.svg"
         alt="logo"
         className="hidden xl:block h-screen w-1/2 object-cover bg-no-repeat"
-        />
+        /> */}
+        <ImageSlider images={images}/>
       </>
     )}
     </>

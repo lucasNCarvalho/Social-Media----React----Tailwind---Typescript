@@ -14,14 +14,14 @@ export function formatDateString(dateString: string) {
   };
 
   const date = new Date(dateString);
-  const formattedDate = date.toLocaleDateString("en-US", options);
+  const formattedDate = date.toLocaleDateString("pt-BR", options);
 
   const time = date.toLocaleTimeString([], {
     hour: "numeric",
     minute: "2-digit",
   });
 
-  return `${formattedDate} at ${time}`;
+  return `${formattedDate} as ${time}`;
 }
 
 export const multiFormatDateString = (timestamp: string = ""): string => {
