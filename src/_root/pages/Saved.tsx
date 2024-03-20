@@ -1,15 +1,25 @@
 import GridPostList from '@/components/shared/GridPostList';
-import { useUserContext } from '@/context/AuthContext';
-import { useGetPosts, useGetSavedPosts, useSavePost } from '@/lib/react-query/queryesAndMutations';
+import Loader from '@/components/shared/Loader';
+import { useGetCurrentUser } from '@/lib/react-query/queryesAndMutations';
+import { Models } from 'appwrite';
+
 
 
 function Saved() {
-  const { user} = useUserContext();
+ const {data: currentUser, isLoading} = useGetCurrentUser()
 
-  const { data: savedPosts } = useGetSavedPosts(user?.id);
+ 
+ const savedPosts = currentUser?.save
+ .map((savePost: Models.Document) => ({
+   ...savePost.post,
+   creator: {
+     imageUrl: currentUser.imageUrl,
+   },
+ }))
+ .reverse();
 
+ console.log("c", currentUser)
 
-  
   return (
     <div className='saved-container'>
       <div className='flex'>
@@ -19,7 +29,7 @@ function Saved() {
         </div>
       </div>
       <div>
-        {savedPosts && <GridPostList posts={savedPosts} />}
+        {isLoading ? <Loader/> : savedPosts && <GridPostList posts={savedPosts} />}
       </div>
     </div>
   )

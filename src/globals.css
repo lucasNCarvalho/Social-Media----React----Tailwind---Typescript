@@ -174,7 +174,7 @@
   }
 
   .profile-container2 {
-    @apply flex flex-1 py-10 gap-10 overflow-scroll px-10 md:p-14  custom-scrollbar;
+    @apply w-full py-10 gap-10 overflow-scroll px-10 md:p-14  custom-scrollbar;
   }
 
 

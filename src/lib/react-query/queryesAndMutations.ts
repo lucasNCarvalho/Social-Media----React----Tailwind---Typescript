@@ -165,10 +165,3 @@ export const useCreatePost = () => {
       enabled: !!searchTerm
     })
   } 
-
-  export const useGetSavedPosts = (userId: string) => {
-    return useQuery({
-      queryKey: [QUERY_KEYS.GET_SAVED_POSTS],
-      queryFn: () => getSavedPosts(userId)
-    });
-  };

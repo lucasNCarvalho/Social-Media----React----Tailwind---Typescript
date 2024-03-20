@@ -32,9 +32,12 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const navigate = useNavigate();
 
+    
 
     useEffect(() => {
         const cookieFallback = localStorage.getItem("cookieFallback");
+
+
         if (
             cookieFallback === "[]" ||
             cookieFallback === null ||
@@ -50,8 +53,9 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsLoading(true);
         try {
             const currentAccount = await getCurrentUser();
-
+           
             if (currentAccount) {
+              
                 setUser({
                     id: currentAccount.$id,
                     name: currentAccount.name,
@@ -60,9 +64,10 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
                     imageUrl: currentAccount.imageUrl,
                     bio: currentAccount.bio
                 })
-
+         
                 setIsAuthenticated(true);
 
+             
                 return true;
             }
 
@@ -72,6 +77,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
             return false;
         } finally {
             setIsLoading(false)
+        
         }
 
     };
