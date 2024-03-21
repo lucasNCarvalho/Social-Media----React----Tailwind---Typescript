@@ -89,6 +89,26 @@ export async function getCurrentUser() {
   }
 }
 
+
+export async function getUseById(id: string) {
+  try {
+    const user = await databases.listDocuments(
+
+      appwriteConfig.databaseId,
+      appwriteConfig.userCollectionId,
+      [Query.equal('$id', id)]
+    )
+
+    if (!user) throw Error;
+
+    return user.documents[0];
+
+  } catch (error) {
+    console.log(error)
+    return null;
+  }
+}
+
 export async function signOutAccount() {
 
   try {
