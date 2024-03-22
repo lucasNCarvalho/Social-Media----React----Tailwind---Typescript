@@ -1,22 +1,24 @@
 import GridPostList from '@/components/shared/GridPostList';
 import Loader from '@/components/shared/Loader';
 import { Button } from '@/components/ui/button';
-import { useGetCurrentUser, useGetUserById } from '@/lib/react-query/queryesAndMutations';
+import { refreshQuery, useGetCurrentUser, useGetUserById } from '@/lib/react-query/queryesAndMutations';
+import { Divide } from 'lucide-react';
 import React, { useEffect } from 'react'
 import { useParams } from 'react-router-dom';
 
 const Profile = () => {
   const { id } = useParams();
-  const { data: currentUser, isLoading } = useGetUserById(id || "")
+  const { data: currentUser, isLoading, refetch} = useGetUserById(id || "")
   const {data:userLogged} = useGetCurrentUser()
 
-
+  console.log("c", currentUser)
   if (isLoading) {
     return (
       <Loader />
     )
   }
 
+  refetch()
 
   return (
     <div className='profile-container2 '>
@@ -68,6 +70,7 @@ const Profile = () => {
           <p>{currentUser?.bio}</p>
         </div>
       </div>
+      
       <div className='mt-10 pt-10 border-solid border-t border-light-3'>
         <GridPostList posts={currentUser?.posts} showUser={false} showStats={false} />
       </div>

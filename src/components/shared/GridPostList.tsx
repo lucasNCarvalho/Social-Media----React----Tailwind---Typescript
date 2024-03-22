@@ -11,10 +11,22 @@ type GridPostListProps = {
     
 }
 
+const objIsEmpty = (obj: object) => {
+    for (let prop in obj) {return false}
+    return true;
+  }
+
 const GridPostList = ({ posts, showUser = true, showStats = true }: GridPostListProps) => {
 
     const { user } = useUserContext();
 
+    console.log("p", typeof(posts))
+
+    if(objIsEmpty(posts)) {
+        return (
+            <p>Não há publicações</p>
+        )
+    }
     
     return (
         <ul className='grid-container '>

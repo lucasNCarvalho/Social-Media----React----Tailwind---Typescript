@@ -90,7 +90,7 @@ export async function getCurrentUser() {
 }
 
 
-export async function getUseById(id: string) {
+export async function getUserById(id: string) {
   try {
     const user = await databases.listDocuments(
 
