@@ -408,3 +408,30 @@ export async function searchPosts(searchTerm: string) {
 
 }
 
+
+
+export async function followUser(user: any, userFollow: string) {
+
+  const userToUpaded = await getUserById(user)
+
+  if(userToUpaded?.following.includes(userFollow)) {
+    return
+  }
+
+  userToUpaded?.following.push(userFollow)
+
+ 
+  try {
+    const userUpdated = await databases.updateDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.userCollectionId,
+      user,
+      {
+        following: userToUpaded?.following
+      })
+
+      return userUpdated
+  } catch (error) {
+    console.log(error)
+  }
+}

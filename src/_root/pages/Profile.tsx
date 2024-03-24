@@ -1,17 +1,24 @@
 import GridPostList from '@/components/shared/GridPostList';
 import Loader from '@/components/shared/Loader';
 import { Button } from '@/components/ui/button';
-import { refreshQuery, useGetCurrentUser, useGetUserById } from '@/lib/react-query/queryesAndMutations';
+import { followUser } from '@/lib/appwrite/api';
+import { useGetCurrentUser, useGetUserById } from '@/lib/react-query/queryesAndMutations';
 import { Divide } from 'lucide-react';
 import React, { useEffect } from 'react'
 import { useParams } from 'react-router-dom';
 
 const Profile = () => {
   const { id } = useParams();
-  const { data: currentUser, isLoading, refetch} = useGetUserById(id || "")
-  const {data:userLogged} = useGetCurrentUser()
+  const { data: currentUser, isLoading, refetch } = useGetUserById(id || "")
+  const { data: userLogged } = useGetCurrentUser()
 
   console.log("c", currentUser)
+
+  const followHandler = () => {
+    followUser(userLogged?.$id, id)
+  }
+
+
   if (isLoading) {
     return (
       <Loader />
@@ -44,7 +51,7 @@ const Profile = () => {
 
 
           <div className={`${userLogged?.$id === id && "hidden"}`}>
-            <Button type="button" className={`ml-1 sm:ml-10 shad-button_primary hidden `}>
+            <Button onClick={followHandler} type="button" className={`ml-1 sm:ml-10 shad-button_primary hidden `}>
               <p>Seguir</p>
             </Button>
           </div>
@@ -53,15 +60,15 @@ const Profile = () => {
       </div>
       <div className='flex w-full pt-10 gap-10 justify-center md:justify-start  md:pl-10 '>
         <div className='block text-center'>
-          <p className=' text-primary-600'>273</p>
+          <p className=' text-primary-600'>{currentUser?.posts.length}</p>
           <p>Publicações</p>
         </div>
         <div className='block text-center'>
-          <p className=' text-primary-600'>273</p>
+          <p className=' text-primary-600'>{currentUser?.followers.length}</p>
           <p>Seguidores</p>
         </div>
         <div className='block text-center'>
-          <p className=' text-primary-600'>273</p>
+          <p className=' text-primary-600'>{currentUser?.following.length}</p>
           <p>Seguindo</p>
         </div>
       </div>
@@ -70,7 +77,7 @@ const Profile = () => {
           <p>{currentUser?.bio}</p>
         </div>
       </div>
-      
+
       <div className='mt-10 pt-10 border-solid border-t border-light-3'>
         <GridPostList posts={currentUser?.posts} showUser={false} showStats={false} />
       </div>
