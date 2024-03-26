@@ -1,5 +1,5 @@
 import {  useMutation, useQueryClient, useInfiniteQuery, useQuery} from '@tanstack/react-query'
-import { createPost, createUserAccount, deletePost, deleteSavedPost, getCurrentUser, getInfinitePosts, getPostById, getRecentPosts, getSavedPosts, getUseById, getUserById, likePost, savePost, searchPosts, signInAccount, signOutAccount, updatePost } from '../appwrite/api'
+import { createPost, createUserAccount, deletePost, deleteSavedPost, deletefollowUser, followUser, getCurrentUser, getInfinitePosts, getPostById, getRecentPosts, getSavedPosts, getUseById, getUserById, likePost, savePost, searchPosts, signInAccount, signOutAccount, updatePost } from '../appwrite/api'
 import { INewPost, INewUser, IUpdatePost } from '@/types'
 import { QUERY_KEYS } from './querykeys'
 
@@ -107,7 +107,6 @@ export const useCreatePost = () => {
     return useQuery({
       queryKey: [QUERY_KEYS.GET_CURRENT_USER],
       queryFn: getCurrentUser,
-      
     })
   }
 
@@ -174,3 +173,16 @@ export const useCreatePost = () => {
     })
   } 
 
+  export const useFollowUser = () => {
+    return useMutation({
+      mutationFn: ({ user, userFollow }: {user: Object, userFollow: string}) => followUser(user, userFollow),
+    });
+  };
+    
+
+
+  export const useDeleteFollowUser = () => {
+    return useMutation({
+      mutationFn: ({user, userFollow}: {user: any, userFollow: string}) => deletefollowUser(user, userFollow),
+    });
+  };

@@ -412,22 +412,40 @@ export async function searchPosts(searchTerm: string) {
 
 export async function followUser(user: any, userFollow: string) {
 
-  const userToUpaded = await getUserById(user)
 
-  if(userToUpaded?.following.includes(userFollow)) {
+  if(user?.following.includes(userFollow)) {
     return
   }
 
-  userToUpaded?.following.push(userFollow)
+  user?.following.push(userFollow)
+  
+  try {
+    const userUpdated = await databases.updateDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.userCollectionId,
+      user.$id,
+      {
+        following: user.following
+      })
 
+      return userUpdated
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+
+export async function deletefollowUser(user: any, userFollow: string) {
+
+  const followDeleted = user?.following.filter((item: string) => item !== userFollow)
  
   try {
     const userUpdated = await databases.updateDocument(
       appwriteConfig.databaseId,
       appwriteConfig.userCollectionId,
-      user,
+      user.$id,
       {
-        following: userToUpaded?.following
+        following: followDeleted
       })
 
       return userUpdated

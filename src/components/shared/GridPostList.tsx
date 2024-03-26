@@ -20,7 +20,7 @@ const GridPostList = ({ posts, showUser = true, showStats = true }: GridPostList
 
     const { user } = useUserContext();
 
-    console.log("p", typeof(posts))
+   
 
     if(objIsEmpty(posts)) {
         return (

@@ -1,33 +1,40 @@
 import GridPostList from '@/components/shared/GridPostList';
 import Loader from '@/components/shared/Loader';
 import { Button } from '@/components/ui/button';
-import { followUser } from '@/lib/appwrite/api';
-import { useGetCurrentUser, useGetUserById } from '@/lib/react-query/queryesAndMutations';
-import { Divide } from 'lucide-react';
-import React, { useEffect } from 'react'
+import { deletefollowUser, followUser } from '@/lib/appwrite/api';
+import { useDeleteFollowUser, useFollowUser, useGetCurrentUser, useGetUserById } from '@/lib/react-query/queryesAndMutations';
+import { checkIsFollowing } from '@/lib/utils';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 const Profile = () => {
   const { id } = useParams();
   const { data: currentUser, isLoading, refetch } = useGetUserById(id || "")
-  const { data: userLogged } = useGetCurrentUser()
+  const { data: userLogged, isLoading: loading} = useGetCurrentUser()
+  const { mutate: followUser } = useFollowUser();
+  const { mutate: deleteFollowUser } = useDeleteFollowUser();
+  const [follow, setFollow] = useState(checkIsFollowing(userLogged?.following || [], id || ""))
+ 
 
-  console.log("c", currentUser)
-
+  useEffect(() => {
+    setFollow(checkIsFollowing(userLogged?.following || [], id || ""));
+  }, [userLogged]);
+  
   const followHandler = () => {
-    followUser(userLogged?.$id, id)
+    followUser({ user: userLogged || "", userFollow: id || "" });
+    setFollow(true)
   }
 
-
-  if (isLoading) {
-    return (
-      <Loader />
-    )
+  const deleteFollowHandler = () => {
+    deleteFollowUser({user: userLogged || "", userFollow: id || ""})
+    setFollow(false)
   }
 
   refetch()
 
   return (
+    <>
+    {isLoading && loading ? <Loader/> : 
     <div className='profile-container2 '>
       <div className='flex w-full h-1/5 '>
         <img src={currentUser?.imageUrl || '/assets/images/profile.png'} alt='profile' className='mx-5 h-35 w-35 max-h-40 max-w-40 rounded-full  cursor-pointer ' />
@@ -51,9 +58,15 @@ const Profile = () => {
 
 
           <div className={`${userLogged?.$id === id && "hidden"}`}>
-            <Button onClick={followHandler} type="button" className={`ml-1 sm:ml-10 shad-button_primary hidden `}>
-              <p>Seguir</p>
-            </Button>
+            {follow ?
+              <Button onClick={deleteFollowHandler} type="button" className={`ml-1 sm:ml-10 bg-dark-2 border-2 `}>
+                <p>Seguindo</p>
+              </Button>
+              :
+              <Button onClick={followHandler} type="button" className={`ml-1 sm:ml-10 shad-button_primary hidden `}>
+                <p>Seguir</p>
+              </Button>
+            }
           </div>
 
         </div>
@@ -82,6 +95,8 @@ const Profile = () => {
         <GridPostList posts={currentUser?.posts} showUser={false} showStats={false} />
       </div>
     </div>
+    }
+    </>
   )
 }
 
