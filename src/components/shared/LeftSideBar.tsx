@@ -6,9 +6,9 @@ import { useUserContext } from '@/context/AuthContext';
 import { sidebarLinks } from '@/constants';
 import { INavLink } from '@/types';
 
-function leftSideBar() {
+export function LeftSideBar() {
 
-    const {pathname} = useLocation();
+    const { pathname } = useLocation();
 
     const { mutate: singOut, isSuccess } = useSignOutAccount();
     const navigate = useNavigate();
@@ -16,14 +16,14 @@ function leftSideBar() {
 
 
     useEffect(() => {
-        
+
         if (isSuccess) navigate(0);
     }, [isSuccess])
     return (
         <nav className='leftsidebar'>
             <div className='flex flex-col gap-11'>
                 <Link to="/" className='flex gap-3 items-center'>
-                    <img src="/assets/images/logo.svg" alt="log" width={170} height={36} />
+                <h1 className="h3-bold md:h2-bold pt-5 sm:pt-12">LOOMY</h1>
                 </Link>
                 <Link to={`/profile/${user.id}`} className='flex gap-3 items-center'>
                     <img src={user.imageUrl || '/assets/images/profile.png'} alt='profile' className='h-14 w-14 rounded-full' />
@@ -58,13 +58,11 @@ function leftSideBar() {
                 </ul>
             </div>
             <Button variant="ghost" className='shad-button_ghost' onClick={() => singOut()}>
-                    <img src='/assets/icons/logout.svg' alt='logout'/>
-                    <p className='small-medium lg:base-medium'>
-                        Sair
-                    </p>
-                </Button>
+                <img src='/assets/icons/logout.svg' alt='logout' />
+                <p className='small-medium lg:base-medium'>
+                    Sair
+                </p>
+            </Button>
         </nav>
     )
 }
-
-export default leftSideBar;

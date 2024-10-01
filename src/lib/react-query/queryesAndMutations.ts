@@ -2,7 +2,7 @@ import {  useMutation, useQueryClient, useInfiniteQuery, useQuery} from '@tansta
 import { createPost, createUserAccount, deletePost, deleteSavedPost, deletefollowUser, followUser, getCurrentUser, getInfinitePosts, getPostById, getRecentPosts, getSavedPosts, getUseById, getUserById, likePost, savePost, searchPosts, signInAccount, signOutAccount, updatePost } from '../appwrite/api'
 import { INewPost, INewUser, IUpdatePost } from '@/types'
 import { QUERY_KEYS } from './querykeys'
-
+import axios from 'axios';
 
 export const useCreateUserAccount = () => {
     return useMutation({
@@ -23,16 +23,27 @@ export const useSignOutAccount = () => {
 }
 
 export const useCreatePost = () => {
-    const queryClient = useQueryClient();
-    return useMutation({
-      mutationFn: (post: INewPost) => createPost(post),
-      onSuccess: () => {
-        queryClient.invalidateQueries({
-          queryKey: [QUERY_KEYS.GET_RECENT_POSTS],
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (formData: any) => {
+      try {
+          const response = await axios.post('http://localhost:3333/post', formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
         });
-      },
-    });
-  };
+          return response.data; // Você pode retornar os dados da resposta se necessário
+      } catch (error) {
+          throw new Error('Erro ao criar postagem');
+      }
+  },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.GET_RECENT_POSTS],
+      });
+    },
+  });
+};
 
   export const useGetRecentPosts = () => {
     return useQuery({
@@ -88,19 +99,19 @@ export const useCreatePost = () => {
     return useMutation({
       mutationFn: (savedRecordedId: string) => deleteSavedPost(savedRecordedId),onSuccess: () => {
         queryClient.invalidateQueries({
-          queryKey: [QUERY_KEYS.GET_RECENT_POSTS]
-        })
-        queryClient.invalidateQueries({
-          queryKey: [QUERY_KEYS.GET_POSTS]
-        })
-        queryClient.invalidateQueries({
-          queryKey: [QUERY_KEYS.GET_CURRENT_USER]
-        })
-        queryClient.invalidateQueries({
-          queryKey: [QUERY_KEYS.GET_SAVED_POSTS]
-        })
-      }
-    })
+            queryKey: [QUERY_KEYS.GET_RECENT_POSTS]
+          })
+          queryClient.invalidateQueries({
+            queryKey: [QUERY_KEYS.GET_POSTS]
+          })
+          queryClient.invalidateQueries({
+            queryKey: [QUERY_KEYS.GET_CURRENT_USER]
+          })
+          queryClient.invalidateQueries({
+            queryKey: [QUERY_KEYS.GET_SAVED_POSTS]
+          })
+        }
+      })
   }
 
   export const useGetCurrentUser = () => {

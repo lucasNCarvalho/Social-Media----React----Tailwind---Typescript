@@ -1,36 +1,39 @@
 import { INewPost, INewUser, IUpdatePost } from "@/types";
 import { ID, Query } from "appwrite";
-import { account, appwriteConfig, avatars, databases, storage } from "./config";
+import { account, appwriteConfig, databases, storage } from "./config";
+import { api } from "../axios";
+import axios from "axios";
 
+//fixed
 export async function createUserAccount(user: INewUser) {
   try {
-
-    const newAccount = await account.create(
-      ID.unique(),
-      user.email,
-      user.password,
-      user.name
-    )
-
-    if (!newAccount) throw Error;
-
-    const avatarUrl = avatars.getInitials(user.name);
-    const newUser = await saveUserToDB({
-      accountid: newAccount.$id,
-      name: newAccount.name,
-      email: newAccount.email,
-      username: user.username,
-      imageUrl: avatarUrl
-    })
-
+    const { email, name, password, userName } = user;
+  
+    const newUser = await api.post('/users', {
+      name, userName, email, password
+    });
+  
     return newUser;
   } catch (error) {
-    console.log(error)
-    return error;
+  
+    if (axios.isAxiosError(error)) {
+      if (error.response?.status === 409) {
+        const conflictField = error.response.data.field;
+  
+        if (conflictField === 'email') {
+          throw new Error('Este e-mail já está em uso.');
+        } else if (conflictField === 'username') {
+          throw new Error('Este nome de usuário já está em uso.');
+        }
+      }
+    }
+    
+ 
+    throw new Error('Falha ao criar nova conta');
   }
 }
 
-
+//todo
 export async function saveUserToDB(user: {
   accountid: string;
   email: string;
@@ -54,17 +57,23 @@ export async function saveUserToDB(user: {
   }
 }
 
+//fixed
 export async function signInAccount(user: { email: string; password: string; }) {
-  try {
-    const session = await account.createEmailSession(user.email, user.password)
+  const { email, password } = user
 
-    return session;
+  try {
+    const session = await api.post('/sessions', {
+      email, password
+    })
+
+    return session
   } catch (error) {
-    console.log(error)
+    throw new Error('Dados invalidos')
   }
 
 }
 
+//todo
 export async function getCurrentUser() {
   try {
 
@@ -89,7 +98,7 @@ export async function getCurrentUser() {
   }
 }
 
-
+//todo
 export async function getUserById(id: string) {
   try {
     const user = await databases.listDocuments(
@@ -109,21 +118,21 @@ export async function getUserById(id: string) {
   }
 }
 
+//fixed
 export async function signOutAccount() {
 
   try {
-    const session = await account.deleteSession("current");
+    await api.delete('/logout')
 
-    return session;
   } catch (error) {
-    console.log(error);
+    throw new Error('Houve uma falha ao te desconectar')
   }
 }
 
 export async function createPost(post: INewPost) {
 
   try {
-    // Upload file to appwrite storage
+
     const uploadedFile = await uploadFile(post.file[0]);
 
     if (!uploadedFile) throw Error;
@@ -166,6 +175,9 @@ export async function createPost(post: INewPost) {
 
 // ============================== UPLOAD FILE
 export async function uploadFile(file: File) {
+
+  console.log("file", file)
+
   try {
     const uploadedFile = await storage.createFile(
       appwriteConfig.storageId,
@@ -413,12 +425,12 @@ export async function searchPosts(searchTerm: string) {
 export async function followUser(user: any, userFollow: string) {
 
 
-  if(user?.following.includes(userFollow)) {
+  if (user?.following.includes(userFollow)) {
     return
   }
 
   user?.following.push(userFollow)
-  
+
   try {
     const userUpdated = await databases.updateDocument(
       appwriteConfig.databaseId,
@@ -428,7 +440,7 @@ export async function followUser(user: any, userFollow: string) {
         following: user.following
       })
 
-      return userUpdated
+    return userUpdated
   } catch (error) {
     console.log(error)
   }
@@ -438,7 +450,7 @@ export async function followUser(user: any, userFollow: string) {
 export async function deletefollowUser(user: any, userFollow: string) {
 
   const followDeleted = user?.following.filter((item: string) => item !== userFollow)
- 
+
   try {
     const userUpdated = await databases.updateDocument(
       appwriteConfig.databaseId,
@@ -448,7 +460,7 @@ export async function deletefollowUser(user: any, userFollow: string) {
         following: followDeleted
       })
 
-      return userUpdated
+    return userUpdated
   } catch (error) {
     console.log(error)
   }

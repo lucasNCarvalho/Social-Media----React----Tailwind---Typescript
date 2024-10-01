@@ -3,11 +3,9 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
 } from "@/components/ui/form"
 import { Link, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input"
@@ -16,35 +14,34 @@ import { useForm } from "react-hook-form"
 import { SignupValidation } from "@/lib/validation"
 import { z } from "zod"
 import Loader from "@/components/shared/Loader"
-import { createUserAccount } from "@/lib/appwrite/api";
 import { useToast } from "@/components/ui/use-toast"
 import { useCreateUserAccount, useSignInAccount } from "@/lib/react-query/queryesAndMutations";
-import { ReceiptRussianRuble } from "lucide-react";
 import { useUserContext } from "@/context/AuthContext";
 
 
 
 function SignupForm() {
   const { toast } = useToast()
-  const { checkAuthUser, isLoading: isUserLoading} = useUserContext();
+  const { checkAuthUser, isLoading: isUserLoading } = useUserContext();
   const navigate = useNavigate();
 
   const { mutateAsync: createUserAccount, isPending: isCreatingAccount } = useCreateUserAccount();
-  const { mutateAsync: signInAccount, isPending: isSigninIn} = useSignInAccount();
- 
-  // 1. Define your form.
+  const { mutateAsync: signInAccount, isPending: isSigninIn } = useSignInAccount();
+
+
   const form = useForm<z.infer<typeof SignupValidation>>({
     resolver: zodResolver(SignupValidation),
     defaultValues: {
       name: "",
-      username: "",
+      userName: "",
       email: "",
       password: ""
     },
   })
 
-  // 2. Define a submit handler.
+
   async function onSubmit(values: z.infer<typeof SignupValidation>) {
+
     const newUser = await createUserAccount(values);
 
     if (!newUser) {
@@ -56,19 +53,19 @@ function SignupForm() {
       password: values.password
     })
 
-    if(!session) {
-      return toast({title: 'Login falhou, por favor tente novamente.'})
-    } 
-
-    const isLoggedIn = await checkAuthUser  ();  
-
-    if(isLoggedIn) {
-      form.reset();
-
-      navigate('/');
-    } else {
-      return toast({title: 'Login falhou, por favor tente novamente.'})
+    if (!session) {
+      return toast({ title: 'Login falhou, por favor tente novamente.' })
     }
+
+    await checkAuthUser();
+
+    // if(isLoggedIn) {
+    //   form.reset();
+
+    //   navigate('/');
+    // } else {
+    //   return toast({title: 'Login falhou, por favor tente novamente.'})
+    // }
   }
   return (
     <Form {...form}>
@@ -92,7 +89,7 @@ function SignupForm() {
           />
           <FormField
             control={form.control}
-            name="username"
+            name="userName"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Nome de usuário</FormLabel>

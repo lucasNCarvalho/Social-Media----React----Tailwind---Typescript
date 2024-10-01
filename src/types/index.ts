@@ -1,9 +1,9 @@
 export type IContenxtType = {
   user: IUser;
   isLoading: boolean;
-  setUser: React.Dispatch<React.SetStateAction<IUser>>;
+  // setUser: React.Dispatch<React.SetStateAction<IUser>>;
   isAuthenticated: boolean;
-  setIsAuthenticated: React.Dispatch<React.SetStateAction<boolean>>;
+  // setIsAuthenticated: React.Dispatch<React.SetStateAction<boolean>>;
   checkAuthUser: () => Promise<boolean>;
 };
 
@@ -28,6 +28,7 @@ export type INewPost = {
   file: File[];
   location?: string;
   tags?: string;
+  imagem: any
 };
 
 export type IUpdatePost = {
@@ -52,6 +53,6 @@ export type IUser = {
 export type INewUser = {
   name: string;
   email: string;
-  username: string;
+  userName: string;
   password: string;
 };

@@ -21,18 +21,38 @@ import { useContext } from "react"
 import { useUserContext } from "@/context/AuthContext"
 import { toast, useToast } from "../ui/use-toast"
 
+
 type PostFormProps = {
     post?: Models.Document;
     action: 'Create' | 'Update';
 }
 
-function PostForm({post, action}: PostFormProps) {
-    
-    const {mutateAsync: createPost, isPending: isLoadingCreate} = useCreatePost();
-    const {mutateAsync: updatePost, isPending: isLoadingUpdate} = useUpdatePost();
+const imageConvertBlob = async (file: any) => {
+  
+    return new Promise ((resolve, reject) => {
+        const fileReader = new FileReader();
+        fileReader.readAsDataURL(file[0]);
 
-    const {user} = useUserContext()
-    const {toast} = useToast();
+        fileReader.onload = () => {
+            resolve(fileReader.result);
+        };
+
+        fileReader.onerror = (error) => {
+            reject(error);
+        }
+
+    })
+}
+
+
+
+function PostForm({ post, action }: PostFormProps) {
+
+    const { mutateAsync: createPost, isPending: isLoadingCreate } = useCreatePost();
+    const { mutateAsync: updatePost, isPending: isLoadingUpdate } = useUpdatePost();
+
+    const { user } = useUserContext()
+    const { toast } = useToast();
     const navigate = useNavigate();
 
     const form = useForm<z.infer<typeof PostValidation>>({
@@ -50,32 +70,59 @@ function PostForm({post, action}: PostFormProps) {
     }
 
 
-    
+
     async function onSubmit(values: z.infer<typeof PostValidation>) {
 
-        if(post && action === 'Update') {
+        const { caption, file, location, tags } = values;
+
+        console.log("type", typeof(file[0]))
+
+        let formData = new FormData()    
+        formData.append('file', file[0]);
+        formData.append('caption', caption);
+        formData.append('location', location);
+        formData.append('tags', tags);
+        formData.append('userId', user.id);
+
+        console.log("formData", formData)
+    
+        if (post && action === 'Update') {
             const updatedPost = await updatePost({
-                ...values,
+                caption,
+                file,
+                location,
+                tags,
                 postId: post.$id,
                 imageId: post?.imageId,
                 imageUrl: post?.imageUrl,
             })
 
-            if(!updatePost) {
-                toast({title: 'Por favor tente novamente'})
+            if (!updatePost) {
+                toast({ title: 'Por favor tente novamente' })
             }
 
             return navigate(`/posts/${post.$id}`)
         }
 
-        const newPost = await createPost({
-            ...values, userId: user.id,
-        })
-        if(!newPost) {
+
+
+
+        // const newPosts = await createPost({
+        //     caption,
+        //     file,
+        //     location,
+        //     tags,
+        //     userId: user.id,
+        //     imagem: formData
+        // })
+
+
+        const newPost = await createPost(formData)
+        if (!newPost) {
             toast({
                 title: 'Por favor tente novamente'
             })
-        }   
+        }
 
         navigate('/');
     }
@@ -102,7 +149,7 @@ function PostForm({post, action}: PostFormProps) {
                         <FormItem>
                             <FormLabel className="shad-form-label">Adicionar Fotos</FormLabel>
                             <FormControl>
-                                <FileUploader fieldChange={field.onChange} mediaUrl={post?.imageUrl}/>
+                                <FileUploader fieldChange={field.onChange} mediaUrl={post?.imageUrl} />
                             </FormControl>
                             <FormMessage className="shad-form_message" />
                         </FormItem>
