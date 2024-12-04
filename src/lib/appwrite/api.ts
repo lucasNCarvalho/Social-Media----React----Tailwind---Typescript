@@ -1,4 +1,4 @@
-import { INewPost, INewUser, IUpdatePost } from "@/types";
+import { Ifollow, INewUser, IUnfollow} from "@/types";
 import { ID, Query } from "appwrite";
 import { account, appwriteConfig, databases, storage } from "./config";
 import { api } from "../axios";
@@ -8,18 +8,18 @@ import axios from "axios";
 export async function createUserAccount(user: INewUser) {
   try {
     const { email, name, password, userName } = user;
-  
+
     const newUser = await api.post('/users', {
       name, userName, email, password
     });
-  
+
     return newUser;
   } catch (error) {
-  
+
     if (axios.isAxiosError(error)) {
       if (error.response?.status === 409) {
         const conflictField = error.response.data.field;
-  
+
         if (conflictField === 'email') {
           throw new Error('Este e-mail já está em uso.');
         } else if (conflictField === 'username') {
@@ -27,8 +27,8 @@ export async function createUserAccount(user: INewUser) {
         }
       }
     }
-    
- 
+
+
     throw new Error('Falha ao criar nova conta');
   }
 }
@@ -98,23 +98,15 @@ export async function getCurrentUser() {
   }
 }
 
-//todo
+//fixed
 export async function getUserById(id: string) {
+  console.log('userBYiD', id)
   try {
-    const user = await databases.listDocuments(
+    const response = await api.get(`/profile/${id}`)
 
-      appwriteConfig.databaseId,
-      appwriteConfig.userCollectionId,
-      [Query.equal('$id', id)]
-    )
-
-    if (!user) throw Error;
-
-    return user.documents[0];
-
+    return response.data || []
   } catch (error) {
-    console.log(error)
-    return null;
+    throw new Error("Usuário não encontrado")
   }
 }
 
@@ -123,54 +115,37 @@ export async function signOutAccount() {
 
   try {
     await api.delete('/logout')
-
+    localStorage.removeItem('token');
+    window.location.replace('/sign-in');
   } catch (error) {
     throw new Error('Houve uma falha ao te desconectar')
   }
 }
 
-export async function createPost(post: INewPost) {
 
+//fixed
+export async function createPost(post: FormData) {
   try {
 
-    const uploadedFile = await uploadFile(post.file[0]);
+    const response = await api.post("/post", post, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
 
-    if (!uploadedFile) throw Error;
+    return response
 
-    // Get file url
-    const fileUrl = getFilePreview(uploadedFile.$id);
-    if (!fileUrl) {
-      await deleteFile(uploadedFile.$id);
-      throw Error;
-    }
-
-    // Convert tags into array
-    const tags = post.tags?.replace(/ /g, "").split(",") || [];
-
-    // Create post
-    const newPost = await databases.createDocument(
-      appwriteConfig.databaseId,
-      appwriteConfig.postCollectionId,
-      ID.unique(),
-      {
-        creator: post.userId,
-        caption: post.caption,
-        imageUrl: fileUrl,
-        imageid: uploadedFile.$id,
-        location: post.location,
-        tags: tags,
-      }
-    );
-
-    if (!newPost) {
-      await deleteFile(uploadedFile.$id);
-      throw Error;
-    }
-
-    return newPost;
   } catch (error) {
-    console.log(error);
+    if (axios.isAxiosError(error) && error.response) {
+      const { status } = error.response;
+
+      if (status === 404) {
+        throw { success: false, message: 'Post não encontrado' };
+      }
+    }
+    throw { success: false, message: 'Erro desconhecido, por favor tente mais tarde' };
   }
+
 }
 
 // ============================== UPLOAD FILE
@@ -220,16 +195,15 @@ export async function deleteFile(fileId: string) {
   }
 }
 
+//fixed
 export async function getRecentPosts() {
-  const posts = await databases.listDocuments(
-    appwriteConfig.databaseId,
-    appwriteConfig.postCollectionId,
-    [Query.orderDesc('$createdAt'), Query.limit(20)]
-  )
+  try {
+    const response = await api.get('/post')
 
-  if (!posts) throw Error;
-
-  return posts;
+    return response.data
+  } catch (error) {
+    throw new Error('Falha ao buscar postagens')
+  }
 }
 
 export async function likePost(postId: string, likesArray: string[]) {
@@ -290,92 +264,111 @@ export async function deleteSavedPost(savedRecordId: string) {
   }
 }
 
-
+//fixed
 export async function getPostById(postId: string) {
   try {
-    const post = await databases.getDocument(
-      appwriteConfig.databaseId,
-      appwriteConfig.postCollectionId,
-      postId
-    )
+    const response = await api.get(`/post/${postId}`)
 
-    return post
+    return response.data
   } catch (error) {
-    console.log(error)
+    throw new Error('Falha ao buscar postagem pelo Id')
   }
 }
 
-
-export async function updatePost(post: IUpdatePost) {
-
-  const hasFileToUpdate = post.file.length > 0;
-
+//fixed and new
+export async function getPostByUserId(userId: string) {
+ 
   try {
-
-    let image = {
-      imageUrl: post.imageUrl,
-      imageId: post.imageId,
-    }
-
-    if (hasFileToUpdate) {
-      const uploadedFile = await uploadFile(post.file[0]);
-      if (!uploadedFile) throw Error;
-
-      // Get file url
-      const fileUrl = getFilePreview(uploadedFile.$id);
-      if (!fileUrl) {
-        await deleteFile(uploadedFile.$id);
-        throw Error;
+    const response = await api.get('/post', {
+      params: {
+        userId,
+        onlyOwnPosts: true
       }
+    })
 
-      image = { ...image, imageUrl: fileUrl, imageId: uploadedFile.$id }
-    }
-
-
-    // Convert tags into array
-    const tags = post.tags?.replace(/ /g, "").split(",") || [];
-
-    // Create post
-    const updatedPost = await databases.updateDocument(
-      appwriteConfig.databaseId,
-      appwriteConfig.postCollectionId,
-      post.postId,
-      {
-        caption: post.caption,
-        imageUrl: image.imageUrl,
-        imageid: image.imageId,
-        location: post.location,
-        tags: tags,
-      }
-    );
-
-    if (!updatePost) {
-      await deleteFile(post.imageId);
-      throw Error;
-    }
-
-    return updatePost;
+    return response.data
   } catch (error) {
-    console.log(error);
+    throw new Error('Falha ao buscar postagem pelo Id')
   }
 }
 
+export async function getPostSavedByUserId() {
+ 
+  try {
+    const response = await api.get('/post', {
+      params: {
+        savedPosts: true
+      }
+    })
 
-export async function deletePost(postId: string, imageId: string) {
+    return response.data
+  } catch (error) {
+    throw new Error('Falha ao buscar postagem salvas')
+  }
+}
 
-  if (!postId || !imageId) throw Error;
+//fixed
+export async function updatePost(id: string, data: FormData) {
+  try {
+    const response = await api.patch(`/post/${id}`, data, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    return response;
+  } catch (error) {
+
+    if (axios.isAxiosError(error) && error.response) {
+      const { status } = error.response;
+
+      if (status === 400) {
+        throw { success: false, message: 'Parâmetros inválidos' };
+      }
+
+      if (status === 404) {
+        throw { success: false, message: 'Post não encontrado' };
+      }
+
+      if (status === 409) {
+        throw { success: false, message: 'Você não tem permissão para executar essa operação' };
+      }
+
+
+    }
+
+    throw new Error('Falha ao atualizar post');
+  }
+
+}
+
+
+export async function deletePost(postId: string) {
 
   try {
+    const response = await api.delete(`/post/${postId}`)
 
-    await databases.deleteDocument(
-      appwriteConfig.databaseId,
-      appwriteConfig.postCollectionId,
-      postId
-    )
-
-    return { status: 'ok' }
+    return response
   } catch (error) {
-    console.log(error)
+   
+    if (axios.isAxiosError(error) && error.response) {
+      const { status } = error.response;
+
+      if (status === 400) {
+        throw { success: false, message: 'Parâmetros inválidos' };
+      }
+
+      if (status === 404) {
+        throw { success: false, message: 'Post não encontrado' };
+      }
+
+      if (status === 409) {
+        throw { success: false, message: 'Você não tem permissão para executar essa operação' };
+      }
+
+    }
+    
+    throw new Error('Falha ao atualizar post');
   }
 }
 
@@ -420,48 +413,66 @@ export async function searchPosts(searchTerm: string) {
 
 }
 
-
-
-export async function followUser(user: any, userFollow: string) {
-
-
-  if (user?.following.includes(userFollow)) {
-    return
-  }
-
-  user?.following.push(userFollow)
-
+//fixed and new
+export async function checkIsUserLoggedFollowingUserId(userId: string) {
+ 
   try {
-    const userUpdated = await databases.updateDocument(
-      appwriteConfig.databaseId,
-      appwriteConfig.userCollectionId,
-      user.$id,
-      {
-        following: user.following
-      })
+    const response = await api.get(`/follow/${userId}`)
 
-    return userUpdated
+    return response.data
   } catch (error) {
-    console.log(error)
+    throw new Error('Falha ao buscar dados, aguarde e tente novamente mais tarde')
   }
 }
 
-
-export async function deletefollowUser(user: any, userFollow: string) {
-
-  const followDeleted = user?.following.filter((item: string) => item !== userFollow)
-
+//fixed and new
+export async function followUser(userToFollow: Ifollow) {
   try {
-    const userUpdated = await databases.updateDocument(
-      appwriteConfig.databaseId,
-      appwriteConfig.userCollectionId,
-      user.$id,
-      {
-        following: followDeleted
-      })
 
-    return userUpdated
+    const response = await api.post("/follow", userToFollow);
+
+    return response
+
   } catch (error) {
-    console.log(error)
+    if (axios.isAxiosError(error) && error.response) {
+      const { status } = error.response;
+
+      if (status === 404) {
+        throw { success: false, message: 'Você não está seguindo este usuário' };
+      }
+
+      if (status === 409) {
+        throw { success: false, message: 'Você já está seguindo esse usuário' };
+      }
+    }
+    throw { success: false, message: 'Erro desconhecido, por favor tente mais tarde' };
   }
+
 }
+
+//fixed and new
+export async function unfollowUser(userToUnfollow: IUnfollow) {
+  try {
+
+    const response = await api.post("/follow", userToUnfollow);
+
+    return response
+
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      const { status } = error.response;
+
+      if (status === 404) {
+        throw { success: false, message: 'Você não está seguindo este usuário' };
+      }
+
+      if (status === 409) {
+        throw { success: false, message: 'Você já está seguindo esse usuário' };
+      }
+    }
+    throw { success: false, message: 'Erro desconhecido, por favor tente mais tarde' };
+  }
+
+}
+
+

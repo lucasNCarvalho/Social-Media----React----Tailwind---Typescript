@@ -1,9 +1,10 @@
+
 import GridPostList from '@/components/shared/GridPostList';
 import Loader from '@/components/shared/Loader';
 import { Input } from '@/components/ui/input'
 import useDebounce from '@/hooks/useDebounce';
 import { useGetPosts, useSearchPosts } from '@/lib/react-query/queryesAndMutations';
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useInView } from 'react-intersection-observer';
 
 export type SearchResultProps = {
@@ -11,41 +12,41 @@ export type SearchResultProps = {
   searchedPosts: any;
 };
 
-const SearchResults = ({ isSearchFetching, searchedPosts }: SearchResultProps) => {
+// const SearchResults = ({ isSearchFetching, searchedPosts }: SearchResultProps) => {
   
-  if (isSearchFetching) {
-    return <Loader />;
-  } else if (searchedPosts && searchedPosts.documents.length > 0) {
-    return <GridPostList posts={searchedPosts.documents} />;
-  } else {
-    return (
-      <p className="text-light-4 mt-10 text-center w-full">Nenhum resultado encontrado</p>
-    );
-  }
-};
+//   if (isSearchFetching) {
+//     return <Loader />;
+//   } else if (searchedPosts && searchedPosts.documents.length > 0) {
+//     return <GridPostList posts={searchedPosts.documents} />;
+//   } else {
+//     return (
+//       <p className="text-light-4 mt-10 text-center w-full">Nenhum resultado encontrado</p>
+//     );
+//   }
+// };
 
 function Explore() {
-  const {ref, inView} = useInView();
-  const { data: posts, fetchNextPage, hasNextPage } = useGetPosts();
+  // const {ref, inView} = useInView();
+  // const { data: posts, fetchNextPage, hasNextPage } = useGetPosts();
 
-  const [searchValue, setSearchValue] = useState('');
-  const debounceValue = useDebounce(searchValue, 500);
-  const { data: searchedPosts, isFetching: isSearchFeching } = useSearchPosts(debounceValue);
+  // const [searchValue, setSearchValue] = useState('');
+  // const debounceValue = useDebounce(searchValue, 500);
+  // const { data: searchedPosts, isFetching: isSearchFeching } = useSearchPosts(debounceValue);
 
-  useEffect(() => {
-    if(inView && !searchValue) fetchNextPage() 
-  }, [inView, searchValue])
+  // useEffect(() => {
+  //   if(inView && !searchValue) fetchNextPage() 
+  // }, [inView, searchValue])
 
-  if (!posts) {
-    return (
-      <div className='flex-center w-full h-full'>
-        <Loader />
-      </div>
-    )
-  }
+  // if (!posts) {
+  //   return (
+  //     <div className='flex-center w-full h-full'>
+  //       <Loader />
+  //     </div>
+  //   )
+  // }
   
-  const shouldShowSearchResults = searchValue !== '';
-  const shouldShowPosts = !shouldShowSearchResults && posts.pages.every((item) => item.documents.length === 0)
+  // const shouldShowSearchResults = searchValue !== '';
+  // const shouldShowPosts = !shouldShowSearchResults && posts.pages.every((item) => item.documents.length === 0)
 
   return (
     <div className='explore-container'>
@@ -62,8 +63,8 @@ function Explore() {
             type='text'
             placeholder='Pesquisar'
             className='explore-search'
-            value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
+
+
           />
         </div>
       </div>
@@ -79,23 +80,23 @@ function Explore() {
         </div>
       </div>
       <div className='flex flex-wrap gap-9 w-full max-w-5xl'>
-        {shouldShowSearchResults ? (
+        {/* {shouldShowSearchResults ? (
           <SearchResults
             isSearchFetching={isSearchFeching}
             searchedPosts={searchedPosts}
           />
         ) : shouldShowPosts ? (
           <p className='text-light-4 mt-10 text-center w-full'>Parece que não há mais publicações</p>
-        ) : posts.pages.map((item, index) => (
-          <GridPostList key={`post-${index}`} posts={item.documents} />
-        ))}
+        ) : posts.pages.map((item, index) => ( */}
+          <GridPostList  />
+        {/* ))} */}
       </div>
 
-      {hasNextPage && !searchValue && (
+      {/* {hasNextPage && !searchValue && (
         <div ref={ref} className='mt-10'>
             <Loader/>
         </div>
-      )}
+      )} */}
     </div>
   )
 }

@@ -1,12 +1,11 @@
+
 import Loader from "@/components/shared/Loader";
 import PostCard from "@/components/shared/PostCard";
 import { useGetRecentPosts } from "@/lib/react-query/queryesAndMutations";
-import { Models } from "appwrite";
 
 function Home() {
-  const { data: posts, isPending: isPostLoading, isError: isErrorPosts } = useGetRecentPosts();
-
-
+  const { data: posts, isPending: isPostLoading } = useGetRecentPosts();
+  
   return (
     <div className="flex flex-1">
       <div className="home-container">
@@ -16,8 +15,8 @@ function Home() {
             <Loader />
           ) : (
             <ul className="flex flex-col flex-1 gap-9 w-full">
-              {posts?.documents.map((post: Models.Document) => (
-                <li key={post.$id} className="flex justify-center w-full">
+              {posts.map((post: any) => (
+                <li key={post.id} className="flex justify-center w-full">
                  
                   <PostCard post={post}/>
                 </li>

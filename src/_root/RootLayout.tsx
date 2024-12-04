@@ -1,6 +1,6 @@
+
 import BottomBar from '@/components/shared/BottomBar'
 import { LeftSideBar } from '@/components/shared/LeftSideBar'
-
 import TopBar from '@/components/shared/TopBar'
 import { useUserContext } from '@/context/AuthContext'
 

@@ -1,43 +1,42 @@
 
 import { api } from '@/lib/axios';
-import { IContenxtType } from '@/types';
 import { createContext, useContext, useEffect, useState } from 'react'
 
 export const INITIAL_USER = {
     id: '',
     name: '',
-    username: '',
+    userName: '',
     email: '',
     imageUrl: '',
-    bio: ''
+    bio: '',
+    followersCount: 0,
+    followingCount: 0,
+    postsCount: 0
 }
+
 
 const INITIAL_STATE = {
     user: INITIAL_USER,
-    isLoading: false,
+    isLoading: true, 
     isAuthenticated: false,
-    // setUser: () => { },
-    // setIsAuthenticated: () => { },
     checkAuthUser: async () => false as boolean,
-}
+};
 
-
-const AuthContext = createContext<IContenxtType>(INITIAL_STATE);
+const AuthContext = createContext(INITIAL_STATE);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-
-    const [user, setUser] = useState(INITIAL_USER)
-    const [isLoading, setIsLoading] = useState(false);
+    const [user, setUser] = useState(INITIAL_USER);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [isLoading, setIsLoading] = useState(true); 
 
+    console.log(user)
 
     useEffect(() => {
-        const token = localStorage.getItem('token')
+        const token = localStorage.getItem('token');
         if (token) {
-            checkAuthUser()
+            checkAuthUser();
         } else {
             setIsLoading(false);
-            setIsAuthenticated(false)
         }
     }, []);
 
@@ -45,39 +44,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
             setIsLoading(true);
 
-            const token = localStorage.getItem('token')
-            if(!token) return false
+            const token = localStorage.getItem('token');
+            if (!token) {
+                setIsAuthenticated(false);
+                return false;
+            }
 
-            const {data} = await api.get('/get-profile')
-            
-            setUser(data.user);
+            const { data } = await api.get('/profile');
+    
+          
+            setUser(data);
             setIsAuthenticated(true);
-            return true
+            return true;
          
         } catch (error) {
-
-            setUser(INITIAL_USER)
+            setUser(INITIAL_USER);
             setIsAuthenticated(false);
-            return false
+            return false;
         } finally {
             setIsLoading(false);
         }
     }   
-    console.log('is', isAuthenticated)
 
     const value = {
         user,
+        checkAuthUser,
         isLoading,
         isAuthenticated,
-        checkAuthUser,
-    }
-
+    };
 
     return (
         <AuthContext.Provider value={value}>
             {children}
         </AuthContext.Provider>
-    )
+    );
 }
 
 export const useUserContext = () => useContext(AuthContext);

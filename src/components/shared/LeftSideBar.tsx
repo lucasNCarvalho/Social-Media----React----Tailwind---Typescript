@@ -5,20 +5,19 @@ import { useSignOutAccount } from '@/lib/react-query/queryesAndMutations'
 import { useUserContext } from '@/context/AuthContext';
 import { sidebarLinks } from '@/constants';
 import { INavLink } from '@/types';
+import profile from '../../../public/assets/images/profile.webp'
 
 export function LeftSideBar() {
 
     const { pathname } = useLocation();
 
-    const { mutate: singOut, isSuccess } = useSignOutAccount();
-    const navigate = useNavigate();
+    const { mutateAsync: singOut } = useSignOutAccount();
     const { user } = useUserContext();
 
+    async function handleLogout () {
+        await singOut()
+    }
 
-    useEffect(() => {
-
-        if (isSuccess) navigate(0);
-    }, [isSuccess])
     return (
         <nav className='leftsidebar'>
             <div className='flex flex-col gap-11'>
@@ -26,13 +25,13 @@ export function LeftSideBar() {
                 <h1 className="h3-bold md:h2-bold pt-5 sm:pt-12">LOOMY</h1>
                 </Link>
                 <Link to={`/profile/${user.id}`} className='flex gap-3 items-center'>
-                    <img src={user.imageUrl || '/assets/images/profile.png'} alt='profile' className='h-14 w-14 rounded-full' />
+                    <img src={user.imageUrl || profile} alt='profile' className='h-14 rounded-full' />
                     <div className='flex flex-col'>
                         <p className='body-bold'>
                             {user.name}
                         </p>
                         <p className='small-regular text-light-3'>
-                            @{user.username}
+                            @{user.userName}
                         </p>
                     </div>
                 </Link>
@@ -57,7 +56,7 @@ export function LeftSideBar() {
                     })}
                 </ul>
             </div>
-            <Button variant="ghost" className='shad-button_ghost' onClick={() => singOut()}>
+            <Button variant="ghost" className='shad-button_ghost' onClick={() =>  handleLogout()}>
                 <img src='/assets/icons/logout.svg' alt='logout' />
                 <p className='small-medium lg:base-medium'>
                     Sair

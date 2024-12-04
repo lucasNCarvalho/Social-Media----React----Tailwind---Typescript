@@ -1,11 +1,11 @@
-export type IContenxtType = {
-  user: IUser;
-  isLoading: boolean;
-  // setUser: React.Dispatch<React.SetStateAction<IUser>>;
-  isAuthenticated: boolean;
-  // setIsAuthenticated: React.Dispatch<React.SetStateAction<boolean>>;
-  checkAuthUser: () => Promise<boolean>;
-};
+// export type IContenxtType = {
+//   user: IUser;
+//   isLoading: boolean;
+//   // setUser: React.Dispatch<React.SetStateAction<IUser>>;
+//   isAuthenticated: boolean;
+//   // setIsAuthenticated: React.Dispatch<React.SetStateAction<boolean>>;
+//   checkAuthUser: () => Promise<boolean>;
+// };
 
 export type INavLink = {
   imgURL: string;
@@ -44,7 +44,7 @@ export type IUpdatePost = {
 export type IUser = {
   id: string;
   name: string;
-  username: string;
+  userName: string;
   email: string;
   imageUrl: string;
   bio: string;
@@ -56,3 +56,39 @@ export type INewUser = {
   userName: string;
   password: string;
 };
+
+export type IPost = {
+  id: string;
+  creatorId: string;
+  caption: string;
+  tags: string[];
+  location: string | null;
+  created_at: string;
+  creator: {
+    id: string;
+    name: string;
+    userName: string;
+    imageUrl: string | null;
+  };
+  image: {
+    url: string;
+  }[];
+  likedPosts: {
+    id: string;
+    name: string;
+    userName: string;
+    imageUrl: string | null;
+  }[];
+  saves: boolean;
+
+}
+
+export type Ifollow = {
+  userId: string;
+  action: 'follow'
+}
+
+export type IUnfollow = {
+  userId: string;
+  action: 'unfollow'
+}

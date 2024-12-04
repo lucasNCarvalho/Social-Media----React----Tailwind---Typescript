@@ -1,39 +1,47 @@
+
 import AlertDialogButton from '@/components/shared/AlertDialogButton';
 import Loader from '@/components/shared/Loader';
 import PostStats from '@/components/shared/PostStats';
-import { Button } from '@/components/ui/button';
+import { toast } from '@/components/ui/use-toast';
+
 import { useUserContext } from '@/context/AuthContext';
 import { useDeletePost, useGetPostById } from '@/lib/react-query/queryesAndMutations'
 import { multiFormatDateString } from '@/lib/utils';
-import React from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
 function PostDetails() {
-  const navigate = useNavigate();
   const { id } = useParams()
 
   const { data: post, isPending } = useGetPostById(id || '');
-  const { mutate: deletePost, isPending: deleteLoading } = useDeletePost()
+  const { mutateAsync: deletePost, isPending: deleteLoading } = useDeletePost()
   const { user } = useUserContext();
+  const navigate = useNavigate()
 
-  const handleDeletePost = () => {
+  async function handleDeletePost() {
+    try {
+      if (!id) return;
+      await deletePost({ postId: id });
 
-    deletePost({ postId: post?.$id || '', imageId: post?.imageid })
-    navigate(-1)
+      toast({ title: "Publicação excluída com sucesso" });
+      navigate('/')
+    } catch (error) {
+      toast({ title: "Houve uma falha ao excluir publicação, tente novamente mais tarde" });
+    }
+
+
   }
-
   return (
     <div className='post_details-container'>
       {isPending ? <Loader /> : (
         <div className='post_details-card'>
           <img
-            src={post?.imageUrl}
+            src={post?.image[0].url}
             alt='post'
             className='post_details-img'
           />
           <div className="post_details-info">
             <div className='flex-between w-full'>
-              <Link to={`/profile/${post?.creator.$id}`} className='flex items-center gap-3'>
+              <Link to={`/profile/${post?.creator.id}`} className='flex items-center gap-3'>
                 <img
                   src={post?.creator.imageUrl || 'assets/icons/profile-placeholder.svg'}
                   alt="creator"
@@ -46,7 +54,7 @@ function PostDetails() {
                   </p>
                   <div className="flex-center gap-2 text-light-3">
                     <p className="subtle-semibold lg:small-regular">
-                      {multiFormatDateString(post?.$createdAt)}
+                      {multiFormatDateString(post?.created_at)}
                     </p>
                     -
                     <p className="subtle-semibold lg:small-regular">
@@ -56,13 +64,11 @@ function PostDetails() {
                 </div>
               </Link>
               <div className='flex-center'>
-                <Link to={`/update-post/${post?.$id}`} className={`${user.id !== post?.creator.$id && 'hidden'}`}>
+                <Link to={`/update-post/${post?.id}`} className={`${user.id !== post?.creator.id && 'hidden'}`}>
                   <img src="/assets/icons/edit.svg" alt="edit" width={24} height={24} />
                 </Link>
-                <div className={`${user.id !== post?.creator.$id && 'hidden'}`}>
-                  <AlertDialogButton
-                    handleDeletePost={handleDeletePost}
-                  />
+                <div className={`${user.id !== post?.creator.id && 'hidden'}`}>
+                  <AlertDialogButton handleDeletePost={handleDeletePost} />
                 </div>
               </div>
             </div>
@@ -81,7 +87,9 @@ function PostDetails() {
             </div>
 
             <div className='w-full'>
-              <PostStats post={post} userId={user.id} />
+              {post && (
+                <PostStats post={post} />
+              )}
             </div>
           </div>
         </div>

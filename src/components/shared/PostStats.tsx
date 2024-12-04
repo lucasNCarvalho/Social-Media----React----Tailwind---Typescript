@@ -1,108 +1,69 @@
-
-import { useDeleteSavedPost, useGetCurrentUser, useLikedPost, useSavePost } from '@/lib/react-query/queryesAndMutations';
-import { checkIsLiked } from '@/lib/utils';
-import { Models } from 'appwrite';
-import React, { useEffect, useState } from 'react'
-import Loader from './Loader';
+import { IPost } from '@/types';
+import { useUserContext } from '@/context/AuthContext';
+import like from "../../../public/assets/icons/like.svg";
+import liked from "../../../public/assets/icons/liked.svg";
+import save from "../../../public/assets/icons/save.svg";
+import saved from "../../../public/assets/icons/saved.svg"
+import { useUpdatePost } from '@/lib/react-query/queryesAndMutations';
 
 type PostStatsProps = {
-    post?: Models.Document;
-    userId: string;
+    post: IPost;
 }
 
-const PostStats = ({ post, userId }: PostStatsProps) => {
-    
+const PostStats = ({ post }: PostStatsProps) => {
+    const { user } = useUserContext()
+    const { mutateAsync: updatePost, isPending: isLoadingUpdate } = useUpdatePost();
 
-    useEffect(() => {
-        if (post && post.likes) {
-            const likesList = post.likes.map((user: Models.Document) => user.$id);
-            setLikes(likesList);
-        }
-    }, [post])
-    
-  
-    const [likes, setLikes] = useState<string[]>([]);
-    const [isSaved, setIsSaved] = useState(false);
-  
-    const { mutate: likePost, isPending: isLiking } = useLikedPost();
-    const { mutate: savePost, isPending: isSavingPost} = useSavePost();
-    const { mutate: deleteSavedPost, isPending: isDeletingSaved } = useDeleteSavedPost();
+    let currentUserLiked = false
+    let currentUserSaved = false
 
-    const { data: currentUser } = useGetCurrentUser();
-
-    const savedPostRecorded = currentUser?.save.find((record: Models.Document) => record.post.$id === post.$id)
-
-    useEffect(() => {
-        setIsSaved(!!savedPostRecorded)
-    }, [currentUser])
-
-    const handleLikePost = (e: React.MouseEvent) => {
-        e.stopPropagation();
-
-        let newLikes = [...likes];
-       
-        const hasLiked = newLikes.includes(userId)
-
-       
-        
-        if(hasLiked) {
-            newLikes = newLikes.filter((id) => {
-               
-                id !== userId
-            })
-        } else {
-            newLikes.push(userId)
-        }
-       
-        setLikes(newLikes);
-      
-        likePost({postId: post?.$id || '', likesArray: newLikes})
-
+    if (post) {
+        currentUserLiked = post.likedPosts.some((item) => item.id === user.id)
+        currentUserSaved = post.saves
     }
 
+    async function handleLikeUpdate() {
+        const formData = new FormData()
 
-    const handleSavePost = (e: React.MouseEvent) => {
-        e.stopPropagation();
+        formData.append("like", String(!currentUserLiked));
 
-        if(savedPostRecorded) {
-            
-            setIsSaved(false);
-            deleteSavedPost(savedPostRecorded.$id)
-        } else {
-            
-            savePost({postId: post?.$id || '', userId});
-            setIsSaved(true)
-        }
+        await updatePost({ id: post.id, post: formData })
+    }
+
+    async function handleSaveUpdate() {
+        const formData = new FormData()
+
+        !currentUserSaved
+
+        formData.append("save", String(!currentUserSaved))
+
+        await updatePost({ id: post.id, post: formData })
     }
 
     return (
         <div className='flex justify-between items-center z-20'>
+
             < div className='flex gap-2 mr-5'>
-                {isLiking ? <Loader/> : 
-                <img
-                    src={checkIsLiked(likes, userId)
-                        ? "/assets/icons/liked.svg"
-                        : "/assets/icons/like.svg"}
-                    alt="like"
-                    width={20}
-                    height={20}
-                    onClick={handleLikePost}
-                    className='cursor-pointer'
-                />}
-                <p className='small-medium lg:base-medium'>{likes.length}</p>
+                <button onClick={() => handleLikeUpdate()}>
+                    <img
+                        src={currentUserLiked ? liked : like}
+                        alt="like"
+                        width={20}
+                        height={20}
+                        className='cursor-pointer'
+                    />
+                </button>
+                <p className='small-medium lg:base-medium cursor-pointer'>{post?.likedPosts?.length}</p>
             </div>
             < div className='flex gap-2'>
-                {isSavingPost || isDeletingSaved ? <Loader/> : 
-                <img
-                    src={isSaved
-                        ? "/assets/icons/saved.svg"
-                        : "/assets/icons/save.svg"
-                    }
-                    alt="like"
-                    width={20}
-                    height={20}
-                    onClick={handleSavePost}
-                    className='cursor-pointer' />}
+                <button onClick={() => handleSaveUpdate()}>
+                    <img
+                        src={post.saves ? saved : save}
+                        alt="like"
+                        width={20}
+                        height={20}
+                        className='cursor-pointer' />
+                </button>
             </div>
         </div>
     )

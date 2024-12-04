@@ -10,10 +10,14 @@ import {
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 
-function AlertDialogButton({handleDeletePost}) {
+interface AlertDialogButtonProps {
+    handleDeletePost: () => Promise<void>
+}
 
-    const confirmDelete = () => {
-        handleDeletePost(); 
+function AlertDialogButton({handleDeletePost}: AlertDialogButtonProps) {
+
+    const confirmDelete = async () => {
+        await handleDeletePost(); 
     };
 
     return (

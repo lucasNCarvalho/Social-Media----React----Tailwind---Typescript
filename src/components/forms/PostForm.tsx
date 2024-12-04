@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useParams } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import {
     Form,
@@ -13,122 +13,80 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "../ui/textarea"
-import FileUploader from "../shared/FileUploader"
-import { PostValidation } from "@/lib/validation"
-import { Models } from "appwrite"
-import { useCreatePost, useUpdatePost } from "@/lib/react-query/queryesAndMutations"
-import { useContext } from "react"
-import { useUserContext } from "@/context/AuthContext"
-import { toast, useToast } from "../ui/use-toast"
 
+import { PostValidation } from "@/lib/validation"
+import { useCreatePost, useUpdatePost } from "@/lib/react-query/queryesAndMutations"
+import { useUserContext } from "@/context/AuthContext"
+import { useToast } from "../ui/use-toast"
+import { IPost } from "@/types"
+import FileUploader from "../shared/FileUploader"
 
 type PostFormProps = {
-    post?: Models.Document;
-    action: 'Create' | 'Update';
-}
-
-const imageConvertBlob = async (file: any) => {
-  
-    return new Promise ((resolve, reject) => {
-        const fileReader = new FileReader();
-        fileReader.readAsDataURL(file[0]);
-
-        fileReader.onload = () => {
-            resolve(fileReader.result);
-        };
-
-        fileReader.onerror = (error) => {
-            reject(error);
-        }
-
-    })
-}
-
-
+    post?: IPost | null 
+    action: "Create" | "Update";
+};
 
 function PostForm({ post, action }: PostFormProps) {
-
+    const { id } = useParams()
     const { mutateAsync: createPost, isPending: isLoadingCreate } = useCreatePost();
     const { mutateAsync: updatePost, isPending: isLoadingUpdate } = useUpdatePost();
-
-    const { user } = useUserContext()
+    const { user } = useUserContext();
     const { toast } = useToast();
     const navigate = useNavigate();
 
     const form = useForm<z.infer<typeof PostValidation>>({
         resolver: zodResolver(PostValidation),
         defaultValues: {
-            caption: post ? post?.caption : '',
+            caption: post ? post.caption : "",
             file: [],
-            location: post ? post?.location : '',
-            tags: post ? post.tags.join(',') : ''
+            location: post ? post.location : undefined,
+            tags: post ? post.tags.join(",") : "",
         },
-    })
+    });
+
 
     const cancelHandle = () => {
-        navigate(-1)
-    }
+        navigate(-1);
+    };
 
-
-
-    async function onSubmit(values: z.infer<typeof PostValidation>) {
-
+    async function handleCreateOrUpdate(values: z.infer<typeof PostValidation>) {
         const { caption, file, location, tags } = values;
 
-        console.log("type", typeof(file[0]))
+        const formData = new FormData();
+        formData.append("image", file[0]);
+        formData.append("caption", caption);
+        formData.append("location", location || "");
+        formData.append("tags", tags || "");
 
-        let formData = new FormData()    
-        formData.append('file', file[0]);
-        formData.append('caption', caption);
-        formData.append('location', location);
-        formData.append('tags', tags);
-        formData.append('userId', user.id);
+        if (post && action === "Update" && id) {
+            try {
 
-        console.log("formData", formData)
-    
-        if (post && action === 'Update') {
-            const updatedPost = await updatePost({
-                caption,
-                file,
-                location,
-                tags,
-                postId: post.$id,
-                imageId: post?.imageId,
-                imageUrl: post?.imageUrl,
-            })
-
-            if (!updatePost) {
-                toast({ title: 'Por favor tente novamente' })
+                const updatedPost = await updatePost({ id, post: formData });
+                if (updatedPost) {
+                    toast({ title: "Post atualizado com sucesso" });
+                }
+                return navigate(`/posts/${post.id}`);
+            } catch (error) {
+                toast({ title: "Erro ao atualizar o post." });
             }
+        } else {
+            try {
+                const response = await createPost(formData);
 
-            return navigate(`/posts/${post.$id}`)
+                if (response) {
+                    toast({ title: "Post criado  com sucesso" });
+                    return navigate(`/`);
+                }
+
+            } catch (error) {
+                toast({ title: "Erro ao atualizar o post." });
+            }
         }
-
-
-
-
-        // const newPosts = await createPost({
-        //     caption,
-        //     file,
-        //     location,
-        //     tags,
-        //     userId: user.id,
-        //     imagem: formData
-        // })
-
-
-        const newPost = await createPost(formData)
-        if (!newPost) {
-            toast({
-                title: 'Por favor tente novamente'
-            })
-        }
-
-        navigate('/');
     }
+
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-9 w-full max-w-5xl">
+            <form onSubmit={form.handleSubmit(handleCreateOrUpdate)} className="flex flex-col gap-9 w-full max-w-5xl">
                 <FormField
                     control={form.control}
                     name="caption"
@@ -149,7 +107,7 @@ function PostForm({ post, action }: PostFormProps) {
                         <FormItem>
                             <FormLabel className="shad-form-label">Adicionar Fotos</FormLabel>
                             <FormControl>
-                                <FileUploader fieldChange={field.onChange} mediaUrl={post?.imageUrl} />
+                                <FileUploader fieldChange={field.onChange} mediaUrl={post?.image[0].url} />
                             </FormControl>
                             <FormMessage className="shad-form_message" />
                         </FormItem>
@@ -162,7 +120,12 @@ function PostForm({ post, action }: PostFormProps) {
                         <FormItem>
                             <FormLabel className="shad-form-label">Adicione uma localização</FormLabel>
                             <FormControl>
-                                <Input type="text" className="shad-input" {...field} />
+                                <Input
+                                    type="text"
+                                    className="shad-input"
+                                    {...field}
+                                    value={field.value ?? ""} 
+                                />
                             </FormControl>
                             <FormMessage className="shad-form_message" />
                         </FormItem>
@@ -173,12 +136,12 @@ function PostForm({ post, action }: PostFormProps) {
                     name="tags"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel className="shad-form-label">Adicionar Tags (separado por virgula " , ")</FormLabel>
+                            <FormLabel className="shad-form-label">Adicionar Tags (separado por vírgula ",")</FormLabel>
                             <FormControl>
                                 <Input
                                     type="text"
                                     className="shad-input"
-                                    placeholder="Artes, Musica, Conhecimento"
+                                    placeholder="Artes, Música, Conhecimento"
                                     {...field}
                                 />
                             </FormControl>
@@ -199,13 +162,12 @@ function PostForm({ post, action }: PostFormProps) {
                         className="shad-button_primary whitespace_nowrap"
                         disabled={isLoadingCreate || isLoadingUpdate}
                     >
-                        {isLoadingCreate || isLoadingUpdate && 'Carregando...'}
-                        {action === 'Create' ? 'Criar' : 'Atualizar'} Post
+                        {isLoadingCreate || isLoadingUpdate ? "Criando..." : action === "Create" ? "Criar" : "Atualizar"}{" "}
                     </Button>
                 </div>
             </form>
         </Form>
-    )
+    );
 }
 
-export default PostForm
+export default PostForm;

@@ -7,26 +7,27 @@ import {
   FormItem,
   FormLabel,
 } from "@/components/ui/form"
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useForm } from "react-hook-form"
 import { SignupValidation } from "@/lib/validation"
 import { z } from "zod"
-import Loader from "@/components/shared/Loader"
+
 import { useToast } from "@/components/ui/use-toast"
 import { useCreateUserAccount, useSignInAccount } from "@/lib/react-query/queryesAndMutations";
 import { useUserContext } from "@/context/AuthContext";
+import Loader from "@/components/shared/Loader";
 
 
 
 function SignupForm() {
   const { toast } = useToast()
-  const { checkAuthUser, isLoading: isUserLoading } = useUserContext();
-  const navigate = useNavigate();
+  const { checkAuthUser } = useUserContext();
+
 
   const { mutateAsync: createUserAccount, isPending: isCreatingAccount } = useCreateUserAccount();
-  const { mutateAsync: signInAccount, isPending: isSigninIn } = useSignInAccount();
+  const { mutateAsync: signInAccount } = useSignInAccount();
 
 
   const form = useForm<z.infer<typeof SignupValidation>>({
