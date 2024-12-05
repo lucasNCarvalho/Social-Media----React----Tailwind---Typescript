@@ -1,5 +1,4 @@
-import { useEffect } from 'react'
-import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
+import { Link, NavLink, useLocation } from 'react-router-dom'
 import { Button } from '../ui/button'
 import { useSignOutAccount } from '@/lib/react-query/queryesAndMutations'
 import { useUserContext } from '@/context/AuthContext';
@@ -25,7 +24,7 @@ export function LeftSideBar() {
                 <h1 className="h3-bold md:h2-bold pt-5 sm:pt-12">LOOMY</h1>
                 </Link>
                 <Link to={`/profile/${user.id}`} className='flex gap-3 items-center'>
-                    <img src={user.imageUrl || profile} alt='profile' className='h-14 rounded-full' />
+                    <img src={user.imageUrl || profile} alt='profile' className='w-14 h-14 rounded-full' />
                     <div className='flex flex-col'>
                         <p className='body-bold'>
                             {user.name}

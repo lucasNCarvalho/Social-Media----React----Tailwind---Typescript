@@ -38,8 +38,8 @@ const Profile = () => {
   return (
     <>
       <div className="profile-container2">
-        <div className="flex w-full h-1/5">
-          <img src={profile} alt="profile" />
+        <div className="flex w-full items-center gap-3 h-1/5">
+          <img src={userProfile?.imageUrl || profile} alt="profile" className='rounded-full h-20 w-20'/>
           <div className="py-10 flex w-full">
             <div>
               <p className="body-bold">{userProfile?.name}</p>
@@ -48,7 +48,7 @@ const Profile = () => {
 
             {user.id === userProfile?.id ? (
               <div className={`"hidden"}`}>
-                <Link className={`ml-1 sm:ml-10 flex-center bg-dark-3 rounded-xl`} to={'/update-profile'}>
+                <Link className={`ml-1 sm:ml-10 flex-center bg-dark-3 rounded-xl`} to={`/update-profile`}>
                   <img src="/assets/icons/edit.svg" alt="edit profile" width={20} height={20} />
                   <p className="m-2 text-xs text-nowrap hidden display sm:block">Editar Perfil</p>
                 </Link>
