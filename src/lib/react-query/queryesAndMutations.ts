@@ -1,7 +1,8 @@
-import { useMutation, useQueryClient, useInfiniteQuery, useQuery } from '@tanstack/react-query'
-import { checkIsUserLoggedFollowingUserId, createPost, createUserAccount, deletePost, deleteSavedPost, followUser, getCurrentUser, getInfinitePosts, getPostById, getPostByUserId, getPostSavedByUserId, getRecentPosts, getUserById, likePost, savePost, searchPosts, signInAccount, signOutAccount, unfollowUser, updatePost } from '../appwrite/api'
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
+import { checkIsUserLoggedFollowingUserId, createPost, createUserAccount, deletePost, followUser, getFollowersListByUserId, getFollowingListByUserId, getListLikesPost, getMostLikedPostsThisWeek, getPostById, getPostByUserId, getPostSavedByUserId, getRecentPosts, getUserById, searchPost, searchUser, signInAccount, signOutAccount, unfollowUser, updatePost, updateUser } from '../appwrite/api'
 import { Ifollow, INewUser, IPost, IUnfollow } from '@/types'
 import { QUERY_KEYS } from './queryKeys'
+
 
 
 export const useCreateUserAccount = () => {
@@ -15,6 +16,22 @@ export const useSignInAccount = () => {
     mutationFn: (user: { email: string; password: string }) => signInAccount(user)
   })
 }
+
+export const useUpdateUser = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: FormData }) => updateUser(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.GET_USER_BY_ID]
+      })
+
+    }
+    
+  })
+}
+
 
 export const useSignOutAccount = () => {
   return useMutation({
@@ -42,73 +59,6 @@ export const useGetRecentPosts = () => {
 }
 
 
-export const useLikedPost = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ postId, likesArray }: { postId: string; likesArray: string[] }) => likePost(postId, likesArray), onSuccess: (data) => {
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.GET_POST_BY_ID, data?.$id]
-      })
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.GET_RECENT_POSTS]
-      })
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.GET_POSTS]
-      })
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.GET_CURRENT_USER]
-      })
-    }
-  })
-}
-
-
-export const useSavePost = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ postId, userId }: { userId: string; postId: string }) => savePost(postId, userId), onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.GET_RECENT_POSTS]
-      })
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.GET_POSTS]
-      })
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.GET_CURRENT_USER]
-      })
-    }
-  })
-}
-
-export const useDeleteSavedPost = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (savedRecordedId: string) => deleteSavedPost(savedRecordedId), onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.GET_RECENT_POSTS]
-      })
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.GET_POSTS]
-      })
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.GET_CURRENT_USER]
-      })
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.GET_SAVED_POSTS]
-      })
-    }
-  })
-}
-
-export const useGetCurrentUser = () => {
-  return useQuery({
-    queryKey: [QUERY_KEYS.GET_CURRENT_USER],
-    queryFn: getCurrentUser,
-  })
-}
 
 export const useGetUserById = (id: string) => {
 
@@ -148,19 +98,36 @@ export const useUpdatePost = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ id, post }: { id: string, post: FormData }) => updatePost(id, post),
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
+      const { id } = variables; 
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.GET_RECENT_POSTS],
-      })
+      });
       queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.GET_POST_BY_ID],
-      })
+        queryKey: [QUERY_KEYS.GET_POST_BY_ID, id],
+      });
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.GET_POST_BY_USER_ID],
-      })
+      });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.GET_LIST_LIKES_BY_POST, id],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.SEARCH_POSTS, id],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.GET_MOST_LIKED_POSTS_THIS_WEEK],
+      });
     },
   });
 };
+
+export const useGetListLikesPost = (postId: string) => {
+  return useQuery({
+    queryKey: [QUERY_KEYS.GET_LIST_LIKES_BY_POST, postId],
+    queryFn: () => getListLikesPost(postId),
+  })
+}
 
 
 export const useDeletePost = () => {
@@ -181,28 +148,7 @@ export const useDeletePost = () => {
   });
 };
 
-export const useGetPosts = () => {
-  return useInfiniteQuery({
-    queryKey: [QUERY_KEYS.GET_INFINITE_POSTS],
-    queryFn: getInfinitePosts as any,
-    getNextPageParam: (lastPage: any) => {
-      if (lastPage && lastPage.documents.length === 0) return null;
 
-      const lastId = lastPage.documents[lastPage.documents.length - 1].$id;
-
-      return lastId;
-    },
-    initialPageParam: 0
-  })
-}
-
-export const useSearchPosts = (searchTerm: string) => {
-  return useQuery({
-    queryKey: [QUERY_KEYS.SEARCH_POSTS, searchTerm],
-    queryFn: () => searchPosts(searchTerm),
-    enabled: !!searchTerm
-  })
-}
 
 
 
@@ -225,6 +171,9 @@ export const usefollowUser = () => {
       })
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.GET_USER_BY_ID],
+      }),
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.SEARCH_USER],
       })
     }
   });
@@ -240,7 +189,49 @@ export const useUnfollowUser = () => {
       })
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.GET_USER_BY_ID],
+      }),
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.SEARCH_USER],
       })
     }
   });
 };
+
+export const useSearchUser = (debouncedSearch: string) => {
+  return useQuery({
+    queryKey: [QUERY_KEYS.SEARCH_USER, debouncedSearch],
+    queryFn: () => searchUser(debouncedSearch),
+    enabled: debouncedSearch.length > 1
+  })
+}
+
+export const useSearcPost = (debouncedSearch: string) => {
+  return useQuery({
+    queryKey: [QUERY_KEYS.SEARCH_POSTS, debouncedSearch],
+    queryFn: () => searchPost(debouncedSearch),
+    enabled: debouncedSearch.length > 1
+  })
+}
+
+export const useGetFollowersListByUserId = (userId: string) => {
+  return useQuery({
+    queryKey: [QUERY_KEYS.GET_FOLLOWERS_LIST_BY_USER_ID, userId],
+    queryFn: () => getFollowersListByUserId(userId),
+    enabled: !!userId
+  })
+}
+
+export const useGetFollowingListByUserId = (userId: string) => {
+  return useQuery({
+    queryKey: [QUERY_KEYS.GET_FOLLOWING_LIST_BY_USER_ID, userId],
+    queryFn: () => getFollowingListByUserId(userId),
+    enabled: !!userId
+  })
+}
+
+export const useGetMostLikedPostsThisWeek = () => {
+  return useQuery({
+    queryKey: [QUERY_KEYS.GET_MOST_LIKED_POSTS_THIS_WEEK],
+    queryFn: () => getMostLikedPostsThisWeek(),
+  })
+}

@@ -92,3 +92,10 @@ export type IUnfollow = {
   userId: string;
   action: 'unfollow'
 }
+
+export type UserProfileSnippet = {
+  id: string
+  name: string
+  imageUrl: string
+}
+

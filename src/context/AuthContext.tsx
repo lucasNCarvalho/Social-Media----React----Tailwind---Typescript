@@ -1,5 +1,6 @@
 
 import { api } from '@/lib/axios';
+import { useGetRecentPosts } from '@/lib/react-query/queryesAndMutations';
 import { createContext, useContext, useEffect, useState } from 'react'
 
 export const INITIAL_USER = {
@@ -28,7 +29,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState(INITIAL_USER);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [isLoading, setIsLoading] = useState(true); 
-
+   
     console.log(user)
 
     useEffect(() => {

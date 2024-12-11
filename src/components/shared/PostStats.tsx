@@ -5,6 +5,8 @@ import liked from "../../../public/assets/icons/liked.svg";
 import save from "../../../public/assets/icons/save.svg";
 import saved from "../../../public/assets/icons/saved.svg"
 import { useUpdatePost } from '@/lib/react-query/queryesAndMutations';
+import { Dialog, DialogTrigger } from '../ui/dialog';
+import ListLikes from './ListLikes';
 
 type PostStatsProps = {
     post: IPost;
@@ -12,7 +14,8 @@ type PostStatsProps = {
 
 const PostStats = ({ post }: PostStatsProps) => {
     const { user } = useUserContext()
-    const { mutateAsync: updatePost, isPending: isLoadingUpdate } = useUpdatePost();
+    const { mutateAsync: updatePost } = useUpdatePost();
+   
 
     let currentUserLiked = false
     let currentUserSaved = false
@@ -53,7 +56,12 @@ const PostStats = ({ post }: PostStatsProps) => {
                         className='cursor-pointer'
                     />
                 </button>
-                <p className='small-medium lg:base-medium cursor-pointer'>{post?.likedPosts?.length}</p>
+                <Dialog>
+                    <DialogTrigger>
+                        <p className='small-medium lg:base-medium cursor-pointer'>{post?.likedPosts?.length}</p>
+                    </DialogTrigger>
+                    <ListLikes  postId={post.id}/>
+                </Dialog>
             </div>
             < div className='flex gap-2'>
                 <button onClick={() => handleSaveUpdate()}>
@@ -70,3 +78,4 @@ const PostStats = ({ post }: PostStatsProps) => {
 }
 
 export default PostStats
+

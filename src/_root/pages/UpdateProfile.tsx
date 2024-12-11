@@ -8,6 +8,8 @@ import { useEffect, useState } from "react";
 import profile from "../../../public/assets/images/profile.png";
 import editWhite from "../../../public/assets/icons/edit-white.svg";
 import { useUserContext } from "@/context/AuthContext";
+import { useUpdateUser } from "@/lib/react-query/queryesAndMutations";
+import { toast } from "@/components/ui/use-toast";
 
 const ProfileValidation = z.object({
   name: z.string().min(1, "O nome é obrigatório."),
@@ -24,8 +26,9 @@ function UpdateProfile() {
 
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-  const { user } = useUserContext();
-  console.log('user', user)
+  const { user, checkAuthUser } = useUserContext();
+  const { mutateAsync: updateUser } = useUpdateUser()
+
   const form = useForm<ProfileFormType>({
     resolver: zodResolver(ProfileValidation),
     defaultValues: {
@@ -57,7 +60,7 @@ function UpdateProfile() {
     }
   };
 
-  const handleUpdateUser = (values: ProfileFormType) => {
+  const handleUpdateUser = async (values: ProfileFormType) => {
     const formData = new FormData();
     formData.append("name", values.name);
     formData.append("userName", values.userName);
@@ -66,10 +69,19 @@ function UpdateProfile() {
       formData.append("password", values.password);
     }
     if (values.file) {
-      formData.append("file", values.file);
+      formData.append("image", values.file);
     }
 
-    console.log('data', values, 'imnage', selectedImage)
+    try {
+      const response = await updateUser({ id: user.id, data: formData })
+
+      if (response) {
+        await checkAuthUser()
+        toast({ title: "Perfil atualizado com sucesso" });
+      }
+    } catch (error) {
+      toast({ title: "Falha ao atualizar o perfil, tente novamente mais tarde" });
+    }
   };
 
   return (
@@ -86,7 +98,7 @@ function UpdateProfile() {
               <img
                 src={selectedImage || profile}
                 alt="Profile"
-                className="w-14 h-14 rounded-full object-cover"
+                className="w-20 rounded-full object-cover"
               />
             </div>
             <label htmlFor="upload" className="cursor-pointer text-blue hover:underline">

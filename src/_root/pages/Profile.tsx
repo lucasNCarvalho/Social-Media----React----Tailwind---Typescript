@@ -5,6 +5,10 @@ import { useUserContext } from '@/context/AuthContext';
 import { useCheckIsUserLoggedFollowingUserId, usefollowUser, useGetPostByUserId, useGetUserById, useUnfollowUser } from '@/lib/react-query/queryesAndMutations';
 import profile from './../../../public//assets/images/profile.webp'
 import { Link, useParams } from 'react-router-dom';
+import Loader from '@/components/shared/Loader';
+import { Dialog, DialogTrigger } from '@/components/ui/dialog';
+import ListFollowers from '@/components/shared/ListFollowers';
+import ListFollowing from '@/components/shared/ListFollowing';
 
 const Profile = () => {
   const { id } = useParams();
@@ -22,7 +26,7 @@ const Profile = () => {
   }
 
   if (isUserProfileLoading || isUserPostsLoading) {
-    return <p>Carregando...</p>;
+    return <Loader />;
   }
 
   async function handleFollowUser() {
@@ -39,7 +43,7 @@ const Profile = () => {
     <>
       <div className="profile-container2">
         <div className="flex w-full items-center gap-3 h-1/5">
-          <img src={userProfile?.imageUrl || profile} alt="profile" className='rounded-full h-20 w-20'/>
+          <img src={userProfile?.imageUrl || profile} alt="profile" className='rounded-full w-20' />
           <div className="py-10 flex w-full">
             <div>
               <p className="body-bold">{userProfile?.name}</p>
@@ -76,11 +80,21 @@ const Profile = () => {
           </div>
           <div className="block text-center">
             <p className="text-primary-600">{userProfile.followersCount}</p>
-            <p>Seguidores</p>
+            <Dialog>
+              <DialogTrigger>
+                <p className='cursor-pointer'>Seguidores</p>
+              </DialogTrigger>
+              <ListFollowers userId={id} />
+            </Dialog>
           </div>
           <div className="block text-center">
             <p className="text-primary-600">{userProfile.followingCount}</p>
-            <p>Seguindo</p>
+            <Dialog>
+              <DialogTrigger>
+                <p className='cursor-pointer'>Seguidores</p>
+              </DialogTrigger>
+              <ListFollowing userId={id} />
+            </Dialog>
           </div>
         </div>
         <div className="flex w-ful pt-10 gap-10 justify-center md:justify-start md:pl-10">

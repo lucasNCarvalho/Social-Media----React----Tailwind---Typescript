@@ -1,6 +1,4 @@
 import { Ifollow, INewUser, IUnfollow} from "@/types";
-import { ID, Query } from "appwrite";
-import { account, appwriteConfig, databases, storage } from "./config";
 import { api } from "../axios";
 import axios from "axios";
 
@@ -33,29 +31,7 @@ export async function createUserAccount(user: INewUser) {
   }
 }
 
-//todo
-export async function saveUserToDB(user: {
-  accountid: string;
-  email: string;
-  name: string;
-  imageUrl: URL;
-  username?: string;
-}) {
 
-  try {
-    const newUser = await databases.createDocument(
-      appwriteConfig.databaseId,
-      appwriteConfig.userCollectionId,
-      ID.unique(),
-      user,
-    )
-
-    return newUser;
-  }
-  catch (error) {
-    console.log(error)
-  }
-}
 
 //fixed
 export async function signInAccount(user: { email: string; password: string; }) {
@@ -73,34 +49,11 @@ export async function signInAccount(user: { email: string; password: string; }) 
 
 }
 
-//todo
-export async function getCurrentUser() {
-  try {
 
-    const currentAccount = await account.get();
-
-    if (!currentAccount) throw Error;
-
-    const currentUser = await databases.listDocuments(
-
-      appwriteConfig.databaseId,
-      appwriteConfig.userCollectionId,
-      [Query.equal('accountid', currentAccount.$id)]
-    )
-
-    if (!currentUser) throw Error;
-
-    return currentUser.documents[0];
-
-  } catch (error) {
-    console.log(error)
-    return null;
-  }
-}
 
 //fixed
 export async function getUserById(id: string) {
-  console.log('userBYiD', id)
+
   try {
     const response = await api.get(`/profile/${id}`)
 
@@ -109,6 +62,38 @@ export async function getUserById(id: string) {
     throw new Error("Usuário não encontrado")
   }
 }
+
+
+export async function updateUser(userId: string, data: FormData) {
+
+  try {
+    const response = await api.patch(`/profile/${userId}`, data, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    })
+
+    return response
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      const { status } = error.response;
+
+      if (status === 401) {
+        throw { success: false, message: 'Não autorizado' };
+      }
+
+      if (status === 404) {
+        throw { success: false, message: 'Usuário não encontrado' };
+      }
+
+      if (status === 400) {
+        throw { success: false, message: 'Tipo de arquivo inválido' };
+      }
+    }
+  }
+}
+
+
 
 //fixed
 export async function signOutAccount() {
@@ -148,52 +133,6 @@ export async function createPost(post: FormData) {
 
 }
 
-// ============================== UPLOAD FILE
-export async function uploadFile(file: File) {
-
-  console.log("file", file)
-
-  try {
-    const uploadedFile = await storage.createFile(
-      appwriteConfig.storageId,
-      ID.unique(),
-      file
-    );
-
-    return uploadedFile;
-  } catch (error) {
-    console.log(error);
-  }
-}
-
-export function getFilePreview(fileId: string) {
-  try {
-    const fileUrl = storage.getFilePreview(
-      appwriteConfig.storageId,
-      fileId,
-      2000,
-      2000,
-      "top",
-      100
-    );
-
-    if (!fileUrl) throw Error;
-
-    return fileUrl;
-  } catch (error) {
-    console.log(error);
-  }
-}
-
-export async function deleteFile(fileId: string) {
-  try {
-    await storage.deleteFile(appwriteConfig.storageId, fileId);
-
-    return { status: "ok" };
-  } catch (error) {
-    console.log(error);
-  }
-}
 
 //fixed
 export async function getRecentPosts() {
@@ -206,63 +145,7 @@ export async function getRecentPosts() {
   }
 }
 
-export async function likePost(postId: string, likesArray: string[]) {
 
-
-  try {
-    const updatedPost = await databases.updateDocument(
-      appwriteConfig.databaseId,
-      appwriteConfig.postCollectionId,
-      postId,
-      {
-        likes: likesArray
-      }
-    )
-
-    if (!updatedPost) throw Error;
-
-    return updatedPost;
-  } catch (error) {
-    console.log(error)
-  }
-}
-
-export async function savePost(postId: string, userId: string) {
-  try {
-
-    const updatedPost = await databases.createDocument(
-      appwriteConfig.databaseId,
-      appwriteConfig.savesCollectionId,
-      ID.unique(),
-      {
-        user: userId,
-        post: postId,
-      }
-    )
-
-    if (!updatedPost) throw Error;
-
-    return updatedPost;
-  } catch (error) {
-    console.log(error)
-  }
-}
-
-export async function deleteSavedPost(savedRecordId: string) {
-  try {
-    const statusCode = await databases.deleteDocument(
-      appwriteConfig.databaseId,
-      appwriteConfig.savesCollectionId,
-      savedRecordId
-    )
-
-    if (!statusCode) throw Error;
-
-    return { status: "ok" }
-  } catch (error) {
-    console.log(error)
-  }
-}
 
 //fixed
 export async function getPostById(postId: string) {
@@ -372,46 +255,8 @@ export async function deletePost(postId: string) {
   }
 }
 
-export async function getInfinitePosts({ pageParam }: { pageParam: number }) {
-  const queries: any[] = [Query.orderDesc('$updatedAt'), Query.limit(10)]
 
-  if (pageParam) {
-    queries.push(Query.cursorAfter(pageParam.toString()));
-  }
 
-  try {
-    const posts = await databases.listDocuments(
-      appwriteConfig.databaseId,
-      appwriteConfig.postCollectionId,
-      queries
-    )
-
-    if (!posts) throw Error
-
-    return posts
-  } catch (error) {
-    console.log(error)
-  }
-
-}
-
-export async function searchPosts(searchTerm: string) {
-
-  try {
-    const posts = await databases.listDocuments(
-      appwriteConfig.databaseId,
-      appwriteConfig.postCollectionId,
-      [Query.search('caption', searchTerm)]
-    )
-
-    if (!posts) throw Error
-
-    return posts
-  } catch (error) {
-    console.log(error)
-  }
-
-}
 
 //fixed and new
 export async function checkIsUserLoggedFollowingUserId(userId: string) {
@@ -476,3 +321,71 @@ export async function unfollowUser(userToUnfollow: IUnfollow) {
 }
 
 
+//fixed and new
+export async function searchUser(debouncedSearch: string) {
+
+  try {
+    const response = await api.get(`/profile`, {
+      params: {
+        name: `${encodeURIComponent(debouncedSearch)}`
+      }
+    })
+    return response.data
+  } catch (error) {
+    throw new Error('Falha ao buscar dados, aguarde e tente novamente mais tarde')
+  }
+}
+
+export async function searchPost(debouncedSearch: string) {
+
+  try {
+    const response = await api.get(`/post`, {
+      params: {
+        tag: `${encodeURIComponent(debouncedSearch)}`
+      }
+    })
+    return response.data
+  } catch (error) {
+    throw new Error('Falha ao buscar dados, aguarde e tente novamente mais tarde')
+  }
+}
+
+export async function getListLikesPost(postId: string) {
+
+  try {
+    const response = await api.get(`/post/likes/${postId}`)
+    return response.data
+  } catch (error) {
+    throw new Error('Falha ao buscar dados, aguarde e tente novamente mais tarde')
+  }
+}
+
+export async function getFollowingListByUserId(userId: string) {
+
+  try {
+    const response = await api.get(`/users/${userId}/following`)
+    return response.data
+  } catch (error) {
+    throw new Error('Falha ao buscar dados, aguarde e tente novamente mais tarde')
+  }
+}
+
+export async function getFollowersListByUserId(userId: string) {
+
+  try {
+    const response = await api.get(`/users/${userId}/followers`)
+    return response.data
+  } catch (error) {
+    throw new Error('Falha ao buscar dados, aguarde e tente novamente mais tarde')
+  }
+}
+
+export async function getMostLikedPostsThisWeek() {
+
+  try {
+    const response = await api.get(`/posts/topPost/week`)
+    return response.data
+  } catch (error) {
+    throw new Error('Falha ao buscar dados, aguarde e tente novamente mais tarde')
+  }
+}

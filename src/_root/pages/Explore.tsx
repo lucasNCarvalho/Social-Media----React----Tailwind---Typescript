@@ -1,52 +1,20 @@
-
+import { useState } from 'react';
 import GridPostList from '@/components/shared/GridPostList';
 import Loader from '@/components/shared/Loader';
-import { Input } from '@/components/ui/input'
+import { Input } from '@/components/ui/input';
 import useDebounce from '@/hooks/useDebounce';
-import { useGetPosts, useSearchPosts } from '@/lib/react-query/queryesAndMutations';
-import { useEffect, useState } from 'react'
-import { useInView } from 'react-intersection-observer';
-
-export type SearchResultProps = {
-  isSearchFetching: boolean;
-  searchedPosts: any;
-};
-
-// const SearchResults = ({ isSearchFetching, searchedPosts }: SearchResultProps) => {
-  
-//   if (isSearchFetching) {
-//     return <Loader />;
-//   } else if (searchedPosts && searchedPosts.documents.length > 0) {
-//     return <GridPostList posts={searchedPosts.documents} />;
-//   } else {
-//     return (
-//       <p className="text-light-4 mt-10 text-center w-full">Nenhum resultado encontrado</p>
-//     );
-//   }
-// };
+import { useGetMostLikedPostsThisWeek, useSearcPost } from '@/lib/react-query/queryesAndMutations';
 
 function Explore() {
-  // const {ref, inView} = useInView();
-  // const { data: posts, fetchNextPage, hasNextPage } = useGetPosts();
+  const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search, 500);
 
-  // const [searchValue, setSearchValue] = useState('');
-  // const debounceValue = useDebounce(searchValue, 500);
-  // const { data: searchedPosts, isFetching: isSearchFeching } = useSearchPosts(debounceValue);
+  const { data: mostLikedPostsThisWeek, isLoading: isLoadingMostLiked } = useGetMostLikedPostsThisWeek();
+  const { data: searchedPosts, isLoading: isLoadingSearch, isFetched: isFetechedPost } = useSearcPost(debouncedSearch);
 
-  // useEffect(() => {
-  //   if(inView && !searchValue) fetchNextPage() 
-  // }, [inView, searchValue])
-
-  // if (!posts) {
-  //   return (
-  //     <div className='flex-center w-full h-full'>
-  //       <Loader />
-  //     </div>
-  //   )
-  // }
-  
-  // const shouldShowSearchResults = searchValue !== '';
-  // const shouldShowPosts = !shouldShowSearchResults && posts.pages.every((item) => item.documents.length === 0)
+  const isSearching = debouncedSearch.length > 1;
+  const postsToDisplay = isSearching ? searchedPosts : mostLikedPostsThisWeek;
+  const isLoading = isSearching ? isLoadingSearch : isLoadingMostLiked;
 
   return (
     <div className='explore-container'>
@@ -63,42 +31,35 @@ function Explore() {
             type='text'
             placeholder='Pesquisar'
             className='explore-search'
-
-
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
           />
         </div>
       </div>
-      <div className='flex-between w-full max-w-5xl mt-16 mb-7'>
-        <h3 className='body-bold md:h3-bold'>Popular hoje</h3>
-        <div className='flex-center gap-3 bg-dark-3 rounded-xl px-4 py-2 cursor-pointer'>
-          <p className='small-medium md:base-medium text-light-2'>Todos</p>
-          <img
-            src="/assets/icons/filter.svg"
-            height={20}
-            width={20}
-            alt="filter" />
+
+      {!isSearching && (
+        <div className='flex-between w-full max-w-5xl mt-16 mb-7'>
+          <h3 className='body-bold md:h3-bold'>Popular hoje</h3>
         </div>
-      </div>
+      )}
+
+      {isFetechedPost && postsToDisplay.length > 0 && (
+        <div className='flex-between w-full max-w-5xl mt-16 mb-7'>
+          <h3 className='body-bold md:h3-bold'>Publicações encontradas</h3>
+        </div>
+      )}
+
       <div className='flex flex-wrap gap-9 w-full max-w-5xl'>
-        {/* {shouldShowSearchResults ? (
-          <SearchResults
-            isSearchFetching={isSearchFeching}
-            searchedPosts={searchedPosts}
-          />
-        ) : shouldShowPosts ? (
-          <p className='text-light-4 mt-10 text-center w-full'>Parece que não há mais publicações</p>
-        ) : posts.pages.map((item, index) => ( */}
-          <GridPostList  />
-        {/* ))} */}
+        {isLoading && <Loader />}
+        {!isLoading && postsToDisplay && postsToDisplay.length > 0 && (
+          <GridPostList posts={postsToDisplay} showUser={false} />
+        )}
+        {!isLoading && postsToDisplay && postsToDisplay.length === 0 && (
+          <p className='pt-20'>Nenhuma publicação encontrada.</p>
+        )}
       </div>
-
-      {/* {hasNextPage && !searchValue && (
-        <div ref={ref} className='mt-10'>
-            <Loader/>
-        </div>
-      )} */}
     </div>
-  )
+  );
 }
 
-export default Explore
+export default Explore;
