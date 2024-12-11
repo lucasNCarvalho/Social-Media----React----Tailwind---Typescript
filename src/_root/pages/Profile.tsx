@@ -43,7 +43,7 @@ const Profile = () => {
     <>
       <div className="profile-container2">
         <div className="flex w-full items-center gap-3 h-1/5">
-          <img src={userProfile?.imageUrl || profile} alt="profile" className='rounded-full w-20' />
+          <img src={userProfile?.imageUrl || profile} alt="profile" className='rounded-full w-20 h-20' />
           <div className="py-10 flex w-full">
             <div>
               <p className="body-bold">{userProfile?.name}</p>

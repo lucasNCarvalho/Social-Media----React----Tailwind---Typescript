@@ -24,7 +24,7 @@ export function LeftSideBar() {
                 <h1 className="h3-bold md:h2-bold pt-5 sm:pt-12">LOOMY</h1>
                 </Link>
                 <Link to={`/profile/${user.id}`} className='flex gap-3 items-center'>
-                    <img src={user.imageUrl || profile} alt='profile' className='w-20 rounded-full' />
+                    <img src={user.imageUrl || profile} alt='profile' className='w-20 h-20 rounded-full object-cover' />
                     <div className='flex flex-col'>
                         <p className='body-bold'>
                             {user.name}
